@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Menu, X, ArrowUpRight, Languages } from 'lucide-react';
 import type { Route } from '@/hooks/useRouter';
 import { useLang } from '@/i18n';
+import { publicAsset } from '@/lib/publicAsset';
 
 export function Navbar({ route, navigate }: { route: Route; navigate: (r: Route) => void }) {
   const [scrolled, setScrolled] = useState(false);
@@ -48,7 +49,7 @@ export function Navbar({ route, navigate }: { route: Route; navigate: (r: Route)
           className="group flex items-center gap-2.5"
           aria-label="ArtiCode home"
         >
-          <img src="/logo_1.png" alt="ArtiCode" className="h-9 w-9 rounded-lg object-cover shadow-[0_0_20px_-4px_rgba(53,75,232,0.6)]" />
+          <img src={publicAsset('logo_1.png')} alt="ArtiCode" className="h-9 w-9 rounded-lg object-cover shadow-[0_0_20px_-4px_rgba(53,75,232,0.6)]" />
           <span className="font-display text-lg font-semibold tracking-tight text-ink-950" dir="ltr">
             Arti<span className="text-gradient-accent">Code</span>
           </span>

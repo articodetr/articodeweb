@@ -11,6 +11,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import type { Lang } from '@/i18n';
+import { publicAsset } from '@/lib/publicAsset';
 
 type L = { en: string; ar: string };
 
@@ -231,7 +232,7 @@ const projectsData: {
       { en: 'Legal services', ar: 'خدمات قانونية' },
       { en: 'Non-profit', ar: 'غير ربحي' },
     ],
-    image: '/projects/yca-birmingham.jpg',
+    image: publicAsset('projects/yca-birmingham.jpg'),
     link: 'https://yca-birmingham.org.uk',
     metric: { value: { en: 'UK', ar: 'بريطانيا' }, label: { en: 'Birmingham', ar: 'برمنغهام' } },
     year: '2024',
@@ -257,7 +258,7 @@ const projectsData: {
       { en: 'Arabic RTL', ar: 'عربي RTL' },
       { en: 'Non-profit', ar: 'غير ربحي' },
     ],
-    image: '/projects/owis-qarni.jpg',
+    image: publicAsset('projects/owis-qarni.jpg'),
     link: 'https://owis-ten.vercel.app',
     metric: {
       value: { en: 'AR', ar: 'عربي' },
@@ -286,7 +287,7 @@ const projectsData: {
       { en: 'Menu experience', ar: 'تجربة قائمة طعام' },
       { en: 'Cairo', ar: 'القاهرة' },
     ],
-    image: '/projects/niola-lounge.jpg',
+    image: publicAsset('projects/niola-lounge.jpg'),
     link: 'https://niola-lounge.vercel.app',
     metric: {
       value: { en: 'Nile', ar: 'النيل' },
@@ -315,7 +316,7 @@ const projectsData: {
       { en: 'Bilingual EN·AR', ar: 'ثنائي اللغة EN·AR' },
       { en: 'Michigan, USA', ar: 'ميشيغان، أمريكا' },
     ],
-    image: '/projects/laqmah-cafe.jpg',
+    image: publicAsset('projects/laqmah-cafe.jpg'),
     link: 'https://laqmah.vercel.app',
     metric: {
       value: { en: 'EN·AR', ar: 'EN·AR' },
@@ -344,7 +345,7 @@ const projectsData: {
       { en: 'Donations', ar: 'تبرعات' },
       { en: 'Non-profit commerce', ar: 'تجارة خيرية' },
     ],
-    image: '/projects/beckah-exchange.jpg',
+    image: publicAsset('projects/beckah-exchange.jpg'),
     link: 'https://beckahex.org',
     metric: {
       value: { en: 'Live', ar: 'مباشر' },
@@ -545,19 +546,19 @@ const teamData: { name: L; role: L; initials: string; image?: string }[] = [
     name: { en: 'Jalal Al-Omari', ar: 'جلال العمري' },
     role: { en: 'Company President', ar: 'رئيس الشركة' },
     initials: 'JA',
-    image: '/team/jalal-alomari.jpg',
+    image: publicAsset('team/jalal-alomari.jpg'),
   },
   {
     name: { en: 'Mohammed Al-Dhaheri', ar: 'محمد الظاهري' },
     role: { en: 'Chief Executive Officer', ar: 'المدير التنفيذي' },
     initials: 'MA',
-    image: '/team/mohammed-al-dhaheri.jpg',
+    image: publicAsset('team/mohammed-al-dhaheri.jpg'),
   },
   {
     name: { en: 'Emad Al-Shabati', ar: 'عماد الشباطي' },
     role: { en: 'Relations Officer', ar: 'مسؤول العلاقات' },
     initials: 'EA',
-    image: '/team/emad-al-shabati.jpg',
+    image: publicAsset('team/emad-al-shabati.jpg'),
   },
   {
     name: { en: 'Laila Qasim', ar: 'ليلى قاسم' },

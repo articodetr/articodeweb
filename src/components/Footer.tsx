@@ -1,6 +1,7 @@
 import { ArrowUpRight, Mail, Phone } from 'lucide-react';
 import type { Route } from '@/hooks/useRouter';
 import { useLang } from '@/i18n';
+import { publicAsset } from '@/lib/publicAsset';
 import {
   CONTACT_EMAIL,
   CONTACT_EMAIL_HREF,
@@ -19,7 +20,7 @@ export function Footer({ navigate }: { navigate: (r: Route) => void }) {
         <div className="grid gap-12 md:grid-cols-12">
           <div className="md:col-span-5">
             <div className="flex items-center gap-2.5">
-              <img src="/logo_1.png" alt="ArtiCode" className="h-9 w-9 rounded-lg object-cover" />
+              <img src={publicAsset('logo_1.png')} alt="ArtiCode" className="h-9 w-9 rounded-lg object-cover" />
               <span className="font-display text-lg font-semibold tracking-tight text-ink-950" dir="ltr">
                 Arti<span className="text-gradient-accent">Code</span>
               </span>

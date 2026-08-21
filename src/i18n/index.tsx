@@ -11,7 +11,7 @@ function initialLang(): Lang {
   } catch {
     /* storage unavailable */
   }
-  return 'en';
+  return 'ar';
 }
 
 const LanguageContext = createContext<{ lang: Lang; setLang: (l: Lang) => void }>({
@@ -180,6 +180,7 @@ const en = {
     errRequired: 'Please fill in your name, email, and project details.',
     errEmail: 'That email address doesn’t look right.',
     errSubmit: 'Something went wrong sending your message. Please try again.',
+    errUnavailable: 'The form is temporarily unavailable. Please email us directly at {email}.',
     directContact: 'Direct contact',
     emailLabel: 'Email',
     phoneLabel: 'Phone',
@@ -329,6 +330,7 @@ const ar: typeof en = {
     errRequired: 'يرجى تعبئة الاسم والبريد الإلكتروني وتفاصيل المشروع.',
     errEmail: 'عنوان البريد الإلكتروني لا يبدو صحيحاً.',
     errSubmit: 'حدث خطأ أثناء إرسال رسالتك. يرجى المحاولة مرة أخرى.',
+    errUnavailable: 'النموذج غير متاح مؤقتاً. يرجى مراسلتنا مباشرة على {email}',
     directContact: 'تواصل مباشر',
     emailLabel: 'البريد الإلكتروني',
     phoneLabel: 'الهاتف',
