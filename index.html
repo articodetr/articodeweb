@@ -5,7 +5,7 @@
     <script>
       (() => {
         try {
-          const lang = localStorage.getItem('articode-lang') === 'en' ? 'en' : 'ar';
+          const lang = localStorage.getItem('articode-lang-v2') === 'en' ? 'en' : 'ar';
           document.documentElement.lang = lang;
           document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
         } catch {

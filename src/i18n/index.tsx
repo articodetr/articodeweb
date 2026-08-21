@@ -2,7 +2,9 @@ import { createContext, useContext, useLayoutEffect, useState } from 'react';
 
 export type Lang = 'en' | 'ar';
 
-const STORAGE_KEY = 'articode-lang';
+// Versioned: bumping the key retires any language saved by an earlier visit, so
+// every browser lands on Arabic again and only an explicit switch changes that.
+const STORAGE_KEY = 'articode-lang-v2';
 
 function initialLang(): Lang {
   try {
@@ -15,7 +17,7 @@ function initialLang(): Lang {
 }
 
 const LanguageContext = createContext<{ lang: Lang; setLang: (l: Lang) => void }>({
-  lang: 'en',
+  lang: 'ar',
   setLang: () => {},
 });
 

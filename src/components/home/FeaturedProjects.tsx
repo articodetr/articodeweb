@@ -15,6 +15,12 @@ import { useLang } from '@/i18n';
 
 const pad = (n: number) => String(n).padStart(2, '0');
 
+/** Brand hex → rgba(), so one tint token can drive washes at several opacities. */
+function rgba(hex: string, alpha: number) {
+  const n = parseInt(hex.replace('#', ''), 16);
+  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`;
+}
+
 function segment(p: number, a: number, b: number) {
   if (b <= a) return p >= b ? 1 : 0;
   const clamped = Math.min(1, Math.max(0, (p - a) / (b - a)));
@@ -24,7 +30,6 @@ function segment(p: number, a: number, b: number) {
 export function FeaturedProjects() {
   const { lang, t } = useLang();
   const reduceMotion = useReducedMotion();
-  const isRtl = lang === 'ar';
   const projects = getProjects(lang);
   const stackRef = useRef<HTMLDivElement>(null);
 
@@ -51,7 +56,7 @@ export function FeaturedProjects() {
           </div>
           <div className="space-y-6 md:space-y-8">
             {projects.map((p, i) => (
-              <FlatCard key={p.id} project={p} index={i} actionLabel={t.home.visitSite} isRtl={isRtl} />
+              <FlatCard key={p.id} project={p} index={i} actionLabel={t.home.visitSite} />
             ))}
           </div>
         </div>
@@ -92,7 +97,7 @@ export function FeaturedProjects() {
               viewport={{ once: true, amount: 0.25 }}
               transition={{ duration: 0.55, ease: EASE }}
             >
-              <FlatCard project={p} index={i} actionLabel={t.home.visitSite} isRtl={isRtl} />
+              <FlatCard project={p} index={i} actionLabel={t.home.visitSite} />
             </motion.div>
           ))}
         </div>
@@ -114,7 +119,6 @@ export function FeaturedProjects() {
                   total={projects.length}
                   progress={progress}
                   actionLabel={t.home.visitSite}
-                  isRtl={isRtl}
                 />
               ))}
             </div>
@@ -131,14 +135,12 @@ function StackedCard({
   total,
   progress,
   actionLabel,
-  isRtl,
 }: {
   project: Project;
   index: number;
   total: number;
   progress: MotionValue<number>;
   actionLabel: string;
-  isRtl: boolean;
 }) {
   const per = total > 1 ? 1 / (total - 1) : 1;
   const enterStart = index === 0 ? 0 : (index - 1) * per;
@@ -162,10 +164,10 @@ function StackedCard({
   return (
     <motion.article
       data-project-card={project.id}
-      style={{ y, scale, zIndex: index + 1 }}
-      className="absolute inset-0 origin-center overflow-hidden bg-ink-950 will-change-transform"
+      style={{ y, scale, zIndex: index + 1, backgroundColor: project.tint }}
+      className="absolute inset-0 origin-center overflow-hidden will-change-transform"
     >
-      <CardInner project={project} index={index} actionLabel={actionLabel} isRtl={isRtl} />
+      <CardInner project={project} index={index} actionLabel={actionLabel} />
     </motion.article>
   );
 }
@@ -174,19 +176,18 @@ function FlatCard({
   project,
   index,
   actionLabel,
-  isRtl,
 }: {
   project: Project;
   index: number;
   actionLabel: string;
-  isRtl: boolean;
 }) {
   return (
     <article
       data-project-card={project.id}
-      className="relative min-h-[34rem] overflow-hidden rounded-[28px] border border-white/10 bg-ink-900 shadow-xl shadow-black/25 sm:min-h-[30rem] md:min-h-[28rem]"
+      style={{ backgroundColor: project.tint }}
+      className="relative min-h-[34rem] overflow-hidden rounded-[28px] border border-white/10 shadow-xl shadow-black/25 sm:min-h-[30rem] md:min-h-[28rem]"
     >
-      <CardInner project={project} index={index} actionLabel={actionLabel} isRtl={isRtl} />
+      <CardInner project={project} index={index} actionLabel={actionLabel} />
     </article>
   );
 }
@@ -195,13 +196,12 @@ function CardInner({
   project,
   index,
   actionLabel,
-  isRtl,
 }: {
   project: Project;
   index: number;
   actionLabel: string;
-  isRtl: boolean;
 }) {
+  const { tint } = project;
   return (
     <>
       <img
@@ -215,38 +215,47 @@ function CardInner({
           img.src = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 800'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23354be8;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%2316c2da;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='1200' height='800' fill='url(%23g)'/%3E%3C/svg%3E`;
         }}
       />
-      <div className="absolute inset-x-0 bottom-0 h-3/4 bg-gradient-to-t from-ink-950/90 via-ink-950/20 to-transparent" />
+      {/* Brand wash: colours the card with the client's own hue instead of flat black. */}
       <div
-        className={`absolute inset-y-0 w-2/3 ${
-          isRtl
-            ? 'right-0 bg-gradient-to-l from-ink-950/35 via-ink-950/10 to-transparent'
-            : 'left-0 bg-gradient-to-r from-ink-950/35 via-ink-950/10 to-transparent'
-        }`}
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background: `radial-gradient(135% 100% at 50% 112%, ${rgba(tint, 0.78)} 0%, ${rgba(
+            tint,
+            0.28
+          )} 40%, transparent 70%)`,
+        }}
       />
+      {/* Just enough scrim at the top for the badges to read over bright screenshots. */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-black/45 to-transparent md:h-40" />
 
-      <div className="absolute start-5 top-5 flex h-14 min-w-14 items-center justify-center rounded-2xl border border-white/20 bg-white/10 px-4 font-display text-lg font-black text-white backdrop-blur-md md:start-8 md:top-8 md:h-16 md:min-w-16 md:text-2xl">
+      <div className="absolute start-5 top-5 flex h-14 min-w-14 items-center justify-center rounded-2xl border border-white/25 bg-ink-950/45 px-4 font-display text-lg font-black text-white backdrop-blur-md md:start-8 md:top-8 md:h-16 md:min-w-16 md:text-2xl">
         <span dir="ltr" className="tabular-nums">
           {pad(index + 1)}
         </span>
       </div>
-      <div className="absolute end-5 top-5 inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3.5 py-1.5 text-xs font-bold text-white backdrop-blur-md md:end-8 md:top-8">
+      <div className="absolute end-5 top-5 inline-flex items-center rounded-full border border-white/25 bg-ink-950/45 px-3.5 py-1.5 text-xs font-bold text-white backdrop-blur-md md:end-8 md:top-8">
         {project.category}
       </div>
 
-      <div className="absolute inset-x-0 bottom-0 p-5 sm:p-7 md:p-8 lg:p-10">
-        <div className="flex flex-col gap-7 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-4xl text-start">
-            <h3 className="font-display text-3xl font-bold leading-tight text-white drop-shadow-[0_3px_14px_rgba(0,0,0,0.82)] sm:text-4xl md:text-[2.75rem] lg:text-5xl">
+      <div className="absolute inset-x-0 bottom-0 p-4 sm:p-6 md:p-7 lg:p-9">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between lg:gap-7">
+          <div
+            className="max-w-3xl rounded-[1.35rem] border border-white/12 p-5 text-start shadow-2xl shadow-black/45 backdrop-blur-2xl sm:p-6 md:rounded-[1.6rem] md:p-7"
+            style={{
+              background: `linear-gradient(155deg, ${rgba(tint, 0.66)} 0%, rgba(8, 9, 11, 0.84) 66%)`,
+            }}
+          >
+            <h3 className="font-display text-2xl font-bold leading-tight text-white sm:text-3xl md:text-4xl lg:text-[2.75rem]">
               {project.name}
             </h3>
-            <p className="mt-3 max-w-3xl text-sm font-medium leading-relaxed text-white/90 drop-shadow-[0_2px_10px_rgba(0,0,0,0.88)] sm:text-base lg:text-lg">
+            <p className="mt-2.5 text-sm font-medium leading-relaxed text-white/85 sm:text-base lg:text-lg">
               {project.blurb}
             </p>
             <div className="mt-5 flex flex-wrap gap-2.5">
               {project.results.map((r, i) => (
                 <div
                   key={i}
-                  className="inline-flex items-baseline gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 backdrop-blur-md"
+                  className="inline-flex items-baseline gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2"
                 >
                   <span dir="ltr" className="font-display text-sm font-semibold text-cyan-300 md:text-base">
                     {r.value}
@@ -260,7 +269,7 @@ function CardInner({
             href={project.link}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex h-12 shrink-0 items-center justify-center gap-2.5 rounded-full bg-accent-500 px-6 text-sm font-semibold text-white shadow-xl shadow-black/25 transition-all hover:bg-accent-400 focus-visible:outline-white"
+            className="inline-flex h-12 shrink-0 items-center justify-center gap-2.5 rounded-full bg-accent-500 px-6 text-sm font-semibold text-white shadow-xl shadow-black/25 transition-all hover:bg-accent-400 focus-visible:outline-white lg:mb-1"
           >
             {actionLabel}
             <ArrowUpRight className="h-4 w-4 rtl:-scale-x-100" />

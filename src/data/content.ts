@@ -196,6 +196,8 @@ export type Project = {
   blurb: string;
   tags: string[];
   image: string;
+  /** Deep brand hue of the client, used to tint the project card. */
+  tint: string;
   link: string;
   metric: { value: string; label: string };
   year: string;
@@ -211,6 +213,7 @@ const projectsData: {
   blurb: L;
   tags: L[];
   image: string;
+  tint: string;
   link: string;
   metric: { value: L; label: L };
   year: string;
@@ -233,6 +236,7 @@ const projectsData: {
       { en: 'Non-profit', ar: 'غير ربحي' },
     ],
     image: publicAsset('projects/yca-birmingham.jpg'),
+    tint: '#4a3520',
     link: 'https://yca-birmingham.org.uk',
     metric: { value: { en: 'UK', ar: 'بريطانيا' }, label: { en: 'Birmingham', ar: 'برمنغهام' } },
     year: '2024',
@@ -259,6 +263,7 @@ const projectsData: {
       { en: 'Non-profit', ar: 'غير ربحي' },
     ],
     image: publicAsset('projects/owis-qarni.jpg'),
+    tint: '#4a1220',
     link: 'https://owis-ten.vercel.app',
     metric: {
       value: { en: 'AR', ar: 'عربي' },
@@ -288,6 +293,7 @@ const projectsData: {
       { en: 'Cairo', ar: 'القاهرة' },
     ],
     image: publicAsset('projects/niola-lounge.jpg'),
+    tint: '#3d2c11',
     link: 'https://niola-lounge.vercel.app',
     metric: {
       value: { en: 'Nile', ar: 'النيل' },
@@ -317,6 +323,7 @@ const projectsData: {
       { en: 'Michigan, USA', ar: 'ميشيغان، أمريكا' },
     ],
     image: publicAsset('projects/laqmah-cafe.jpg'),
+    tint: '#3d1520',
     link: 'https://laqmah.vercel.app',
     metric: {
       value: { en: 'EN·AR', ar: 'EN·AR' },
@@ -346,6 +353,7 @@ const projectsData: {
       { en: 'Non-profit commerce', ar: 'تجارة خيرية' },
     ],
     image: publicAsset('projects/beckah-exchange.jpg'),
+    tint: '#123a2a',
     link: 'https://beckahex.org',
     metric: {
       value: { en: 'Live', ar: 'مباشر' },
@@ -370,6 +378,7 @@ export function getProjects(lang: Lang): Project[] {
     blurb: p.blurb[lang],
     tags: p.tags.map((tag) => tag[lang]),
     image: p.image,
+    tint: p.tint,
     link: p.link,
     metric: { value: p.metric.value[lang], label: p.metric.label[lang] },
     year: p.year,
