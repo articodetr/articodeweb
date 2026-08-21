@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { scrollToElement } from '@/lib/scroller';
 
 export type Route = 'home' | 'expertise' | 'projects' | 'about' | 'contact';
 
@@ -73,16 +74,7 @@ function scrollToSection(route: Route, behavior: ScrollBehavior) {
   const section = document.getElementById(route);
   if (!section) return;
 
-  if (behavior === 'auto') {
-    const root = document.documentElement;
-    const previousBehavior = root.style.scrollBehavior;
-    root.style.scrollBehavior = 'auto';
-    section.scrollIntoView({ behavior: 'auto', block: 'start' });
-    root.style.scrollBehavior = previousBehavior;
-    return;
-  }
-
-  section.scrollIntoView({ behavior, block: 'start' });
+  scrollToElement(section, behavior);
 }
 
 function prefersReducedMotion() {

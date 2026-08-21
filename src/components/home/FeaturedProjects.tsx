@@ -8,10 +8,11 @@ import {
   type MotionValue,
 } from 'framer-motion';
 import { ArrowUpRight } from 'lucide-react';
+import { SectionHeading } from '@/components/SectionHeading';
+import { EASE_OUT as EASE } from '@/lib/motionTokens';
 import { getProjects, type Project } from '@/data/content';
 import { useLang } from '@/i18n';
 
-const EASE = [0.16, 1, 0.3, 1] as const;
 const pad = (n: number) => String(n).padStart(2, '0');
 
 function segment(p: number, a: number, b: number) {
@@ -39,12 +40,15 @@ export function FeaturedProjects() {
       <section id="projects" className="relative overflow-clip bg-ink-950 py-20 text-white md:py-28">
         <div className="absolute inset-0 bg-gradient-to-b from-ink-900 via-ink-950 to-ink-950" />
         <div className="relative mx-auto w-full max-w-[116rem] px-5 sm:px-8 lg:px-12">
-          <SectionHeader
-            eyebrow={t.home.projectsEyebrow}
-            title={t.home.projectsTitle}
-            description={t.home.projectsDescription}
-            staticMode
-          />
+          <div className="mb-12 md:mb-16">
+            <SectionHeading
+              eyebrow={t.home.projectsEyebrow}
+              title={t.home.projectsTitle}
+              description={t.home.projectsDescription}
+              align="center"
+              tone="dark"
+            />
+          </div>
           <div className="space-y-6 md:space-y-8">
             {projects.map((p, i) => (
               <FlatCard key={p.id} project={p} index={i} actionLabel={t.home.visitSite} isRtl={isRtl} />
@@ -68,25 +72,15 @@ export function FeaturedProjects() {
       <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/35 to-transparent" />
 
       <div className="relative mx-auto w-full max-w-[116rem] px-5 sm:px-8 lg:px-12">
-        <motion.div
-          initial={{ opacity: 0, y: 36 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.35 }}
-          transition={{ duration: 0.65, ease: EASE }}
-          className="mb-12 flex flex-col items-center text-center md:mb-16"
-        >
-          <span className="mb-4 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.22em] text-cyan-300">
-            <span className="h-px w-6 bg-cyan-400/70" />
-            {t.home.projectsEyebrow}
-            <span className="h-px w-6 bg-cyan-400/70" />
-          </span>
-          <h2 className="font-display text-4xl font-semibold leading-tight tracking-tight text-white md:text-5xl lg:text-6xl">
-            {t.home.projectsTitle}
-          </h2>
-          <p className="mt-5 max-w-3xl text-base font-medium leading-relaxed text-white/70 md:text-lg">
-            {t.home.projectsDescription}
-          </p>
-        </motion.div>
+        <div className="mb-12 md:mb-16">
+          <SectionHeading
+            eyebrow={t.home.projectsEyebrow}
+            title={t.home.projectsTitle}
+            description={t.home.projectsDescription}
+            align="center"
+            tone="dark"
+          />
+        </div>
 
         {/* Mobile */}
         <div className="space-y-6 md:hidden">
@@ -128,40 +122,6 @@ export function FeaturedProjects() {
         </div>
       </div>
     </section>
-  );
-}
-
-function SectionHeader({
-  eyebrow,
-  title,
-  description,
-  staticMode = false,
-}: {
-  eyebrow: string;
-  title: string;
-  description: string;
-  staticMode?: boolean;
-}) {
-  return (
-    <motion.div
-      initial={staticMode ? false : { opacity: 0, y: 36 }}
-      whileInView={staticMode ? undefined : { opacity: 1, y: 0 }}
-      viewport={staticMode ? undefined : { once: true, amount: 0.35 }}
-      transition={staticMode ? undefined : { duration: 0.65, ease: EASE }}
-      className="mb-12 flex flex-col items-center text-center md:mb-16"
-    >
-      <span className="mb-4 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.22em] text-cyan-300">
-        <span className="h-px w-6 bg-cyan-400/70" />
-        {eyebrow}
-        <span className="h-px w-6 bg-cyan-400/70" />
-      </span>
-      <h2 className="font-display text-4xl font-semibold leading-tight tracking-tight text-white md:text-5xl lg:text-6xl">
-        {title}
-      </h2>
-      <p className="mt-5 max-w-3xl text-base font-medium leading-relaxed text-white/70 md:text-lg">
-        {description}
-      </p>
-    </motion.div>
   );
 }
 
@@ -224,7 +184,7 @@ function FlatCard({
   return (
     <article
       data-project-card={project.id}
-      className="relative min-h-[34rem] overflow-hidden rounded-[1.5rem] border border-white/10 bg-ink-900 shadow-xl shadow-black/25 sm:min-h-[30rem] md:min-h-[28rem]"
+      className="relative min-h-[34rem] overflow-hidden rounded-[28px] border border-white/10 bg-ink-900 shadow-xl shadow-black/25 sm:min-h-[30rem] md:min-h-[28rem]"
     >
       <CardInner project={project} index={index} actionLabel={actionLabel} isRtl={isRtl} />
     </article>
@@ -264,17 +224,19 @@ function CardInner({
         }`}
       />
 
-      <div className="absolute start-5 top-5 flex h-14 min-w-14 items-center justify-center rounded-2xl border border-white/20 bg-white/10 px-4 font-display text-lg font-semibold text-white backdrop-blur-md md:start-8 md:top-8 md:h-16 md:min-w-16 md:text-2xl">
-        <span dir="ltr">{pad(index + 1)}</span>
+      <div className="absolute start-5 top-5 flex h-14 min-w-14 items-center justify-center rounded-2xl border border-white/20 bg-white/10 px-4 font-display text-lg font-black text-white backdrop-blur-md md:start-8 md:top-8 md:h-16 md:min-w-16 md:text-2xl">
+        <span dir="ltr" className="tabular-nums">
+          {pad(index + 1)}
+        </span>
       </div>
-      <div className="absolute end-5 top-5 inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3.5 py-1.5 text-xs font-semibold text-white backdrop-blur-md md:end-8 md:top-8">
+      <div className="absolute end-5 top-5 inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3.5 py-1.5 text-xs font-bold text-white backdrop-blur-md md:end-8 md:top-8">
         {project.category}
       </div>
 
       <div className="absolute inset-x-0 bottom-0 p-5 sm:p-7 md:p-8 lg:p-10">
         <div className="flex flex-col gap-7 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-4xl text-start">
-            <h3 className="font-display text-3xl font-semibold leading-tight text-white drop-shadow-[0_3px_14px_rgba(0,0,0,0.82)] sm:text-4xl md:text-[2.75rem] lg:text-5xl">
+            <h3 className="font-display text-3xl font-bold leading-tight text-white drop-shadow-[0_3px_14px_rgba(0,0,0,0.82)] sm:text-4xl md:text-[2.75rem] lg:text-5xl">
               {project.name}
             </h3>
             <p className="mt-3 max-w-3xl text-sm font-medium leading-relaxed text-white/90 drop-shadow-[0_2px_10px_rgba(0,0,0,0.88)] sm:text-base lg:text-lg">

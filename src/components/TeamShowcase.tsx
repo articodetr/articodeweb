@@ -1,4 +1,5 @@
 import type { PointerEvent as ReactPointerEvent } from 'react';
+import { Reveal } from '@/components/motion';
 import type { TeamMember } from '@/data/content';
 import { getWhatsAppUrl } from '@/data/contact';
 import { useLang } from '@/i18n';
@@ -26,10 +27,14 @@ export function TeamShowcase({ members }: TeamShowcaseProps) {
   return (
     <div className="team-grid mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-4" role="list">
       {members.map((member, index) => (
-        <div
+        <Reveal
           key={member.initials}
           role="listitem"
-          className={`reveal reveal-delay-${(index % 4) + 1} min-w-0`}
+          className="min-w-0"
+          delay={(index % 4) * 0.09}
+          y={44}
+          scale={0.96}
+          amount={0.2}
         >
           <a
             href={getWhatsAppUrl(
@@ -80,7 +85,7 @@ export function TeamShowcase({ members }: TeamShowcaseProps) {
               </div>
             </div>
           </a>
-        </div>
+        </Reveal>
       ))}
     </div>
   );

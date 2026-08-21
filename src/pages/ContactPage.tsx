@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ArrowUpRight, Check, Loader2, AlertCircle, Mail, Phone, MapPin, Clock } from 'lucide-react';
 import { SectionHeading } from '@/components/SectionHeading';
+import { Reveal } from '@/components/motion';
 import { getServices } from '@/data/content';
 import {
   CONTACT_EMAIL,
@@ -48,6 +49,12 @@ export function ContactPage() {
       return;
     }
 
+    if (!supabase) {
+      setStatus('error');
+      setErrorMsg(t.contact.errUnavailable.replace('{email}', CONTACT_EMAIL));
+      return;
+    }
+
     setStatus('submitting');
     setErrorMsg('');
 
@@ -88,7 +95,7 @@ export function ContactPage() {
 
         <div className="mt-14 grid gap-10 lg:grid-cols-12">
           {/* Form */}
-          <div className="reveal lg:col-span-7">
+          <Reveal className="lg:col-span-7" y={44} scale={0.97} amount={0.15}>
             <div className="card-surface p-7 md:p-9">
               {status === 'success' ? (
                 <div className="flex flex-col items-center justify-center py-16 text-center">
@@ -190,13 +197,13 @@ export function ContactPage() {
                 </form>
               )}
             </div>
-          </div>
+          </Reveal>
 
           {/* Details */}
-          <div className="reveal reveal-delay-1 lg:col-span-5">
+          <Reveal className="lg:col-span-5" delay={0.14} y={44} scale={0.97} amount={0.15}>
             <div className="space-y-5">
               <div className="card-surface p-7">
-                <h3 className="font-display text-lg font-semibold text-ink-950">{t.contact.directContact}</h3>
+                <h3 className="card-title text-lg md:text-xl">{t.contact.directContact}</h3>
                 <ul className="mt-5 space-y-4 text-sm">
                   <DetailRow
                     icon={Mail}
@@ -218,11 +225,11 @@ export function ContactPage() {
               </div>
 
               <div className="card-surface p-7">
-                <h3 className="font-display text-lg font-semibold text-ink-950">{t.contact.nextTitle}</h3>
+                <h3 className="card-title text-lg md:text-xl">{t.contact.nextTitle}</h3>
                 <ol className="mt-5 space-y-4">
                   {[t.contact.nextStep1, t.contact.nextStep2, t.contact.nextStep3].map((step, i) => (
                     <li key={i} className="flex gap-3 text-sm text-ink-600">
-                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent-50 font-mono text-xs text-accent-700 ring-1 ring-accent-100">
+                      <span className="pill h-6 w-6 justify-center px-0 tabular-nums" dir="ltr">
                         {i + 1}
                       </span>
                       <span className="leading-relaxed">{step}</span>
@@ -231,7 +238,7 @@ export function ContactPage() {
                 </ol>
               </div>
             </div>
-          </div>
+          </Reveal>
         </div>
       </div>
     </section>
@@ -252,7 +259,7 @@ function Field({
 }) {
   return (
     <label className="block">
-      <span className="mb-2 block text-xs font-medium uppercase tracking-wider text-ink-600">
+      <span className="mb-2 block text-xs font-semibold text-ink-600">
         {label}
         {required && <span className="ms-1 text-accent-700">*</span>}
       </span>

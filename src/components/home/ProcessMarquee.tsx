@@ -8,11 +8,12 @@ import {
   useTransform,
 } from 'framer-motion';
 import { Compass, DraftingCompass, Code2, ShieldCheck, TrendingUp } from 'lucide-react';
+import { SplitWords } from '@/components/motion';
+import { EASE } from '@/lib/motionTokens';
 import { getProcessSteps, clientLogos } from '@/data/content';
 import { useLang } from '@/i18n';
 
 const STEP_ICONS = [Compass, DraftingCompass, Code2, ShieldCheck, TrendingUp];
-const EASE = [0.22, 1, 0.36, 1] as const;
 
 const pad = (n: number) => String(n).padStart(2, '0');
 
@@ -43,14 +44,30 @@ function JourneyHeading({
 }) {
   return (
     <div className={compact ? 'max-w-2xl text-start' : 'max-w-xl text-start'}>
-      <div className="mb-4 flex items-center gap-2">
-        <span className="h-2 w-2 rounded-full bg-accent-500" />
-        <span className="text-sm font-semibold text-accent-700">{eyebrow}</span>
-      </div>
+      <motion.div
+        className="mb-4"
+        initial={{ opacity: 0, y: 14 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.5 }}
+        transition={{ duration: 0.5, ease: EASE }}
+      >
+        <span className="eyebrow">
+          <span className="eyebrow-dot" aria-hidden="true" />
+          {eyebrow}
+        </span>
+      </motion.div>
       <h2 className="text-balance font-display text-3xl font-semibold leading-tight tracking-tight text-ink-950 md:text-4xl">
-        {title}
+        <SplitWords text={title} />
       </h2>
-      <p className="mt-4 text-sm leading-relaxed text-ink-600 md:text-base">{description}</p>
+      <motion.p
+        className="mt-4 text-sm leading-relaxed text-ink-600 md:text-base"
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.4 }}
+        transition={{ duration: 0.65, delay: 0.14, ease: EASE }}
+      >
+        {description}
+      </motion.p>
     </div>
   );
 }
@@ -82,32 +99,18 @@ function StationCard({
           : undefined
       }
       transition={{ duration: 0.45, ease: EASE }}
-      className={`relative flex h-full flex-col rounded-[28px] border p-6 text-start transition-colors duration-500 md:p-7 ${
-        isLast
-          ? 'border-accent-700 bg-gradient-to-br from-accent-700 via-accent-600 to-accent-800 text-white shadow-[0_28px_70px_rgba(41,57,199,0.32)]'
-          : active
-            ? 'border-accent-200 bg-white shadow-[0_28px_70px_rgba(15,23,42,0.14)]'
-            : 'border-ink-100 bg-white shadow-[0_18px_48px_rgba(15,23,42,0.07)]'
+      className={`station-card group ${isLast ? 'station-card-invert' : ''} ${
+        active && !isLast ? 'border-accent-200 shadow-[0_28px_70px_rgba(15,23,42,0.14)]' : ''
       }`}
     >
       <div className="flex items-center justify-between">
-        <span
-          className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-bold ${
-            isLast ? 'bg-white/15 text-white' : 'bg-accent-50 text-accent-700'
-          }`}
-        >
+        <span className="pill">
           {stepLabel}
           <span dir="ltr" className="tabular-nums">
             {pad(index + 1)}
           </span>
         </span>
-        <span
-          className={`relative flex h-12 w-12 items-center justify-center rounded-2xl ${
-            isLast
-              ? 'bg-white text-accent-700'
-              : 'bg-accent-600 text-white shadow-[0_12px_26px_rgba(41,57,199,0.3)]'
-          }`}
-        >
+        <span className="station-icon">
           <Icon className="h-5 w-5" aria-hidden="true" />
           {active && !reduced && (
             <span
@@ -121,32 +124,14 @@ function StationCard({
         </span>
       </div>
 
-      <span
-        aria-hidden="true"
-        className={`mt-6 block select-none font-display text-6xl font-black leading-none tabular-nums ${
-          isLast ? 'text-white/20' : 'text-accent-50'
-        }`}
-      >
+      <span aria-hidden="true" className="station-ghost mt-6">
         {pad(index + 1)}
       </span>
 
-      <h3 className={`mt-3 text-xl font-bold md:text-2xl ${isLast ? 'text-white' : 'text-ink-950'}`}>
-        {step.title}
-      </h3>
-      <p
-        className={`mb-6 mt-3 text-sm leading-relaxed md:text-[15px] ${
-          isLast ? 'text-white/85' : 'text-ink-600'
-        }`}
-      >
-        {step.description}
-      </p>
+      <h3 className="card-title mt-3">{step.title}</h3>
+      <p className="card-text mb-6 mt-3">{step.description}</p>
 
-      <span
-        aria-hidden="true"
-        className={`mt-auto block h-1 rounded-full transition-[width] duration-700 ${
-          isLast ? 'bg-white/70' : 'bg-accent-600'
-        } ${active ? 'w-full' : 'w-12'}`}
-      />
+      <span aria-hidden="true" className={`station-bar ${active ? 'w-full' : 'w-12'}`} />
     </motion.article>
   );
 }
