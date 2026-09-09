@@ -196,6 +196,8 @@ export type Project = {
   blurb: string;
   tags: string[];
   image: string;
+  /** Optional WebP rendition of `image`, served first where supported. */
+  imageWebp?: string;
   /** Deep brand hue of the client, used to tint the project card. */
   tint: string;
   link: string;
@@ -213,6 +215,7 @@ const projectsData: {
   blurb: L;
   tags: L[];
   image: string;
+  imageWebp?: string;
   tint: string;
   link: string;
   metric: { value: L; label: L };
@@ -236,6 +239,7 @@ const projectsData: {
       { en: 'Non-profit', ar: 'غير ربحي' },
     ],
     image: publicAsset('projects/yca-birmingham.jpg'),
+    imageWebp: publicAsset('projects/yca-birmingham.webp'),
     tint: '#4a3520',
     link: 'https://yca-birmingham.org.uk',
     metric: { value: { en: 'UK', ar: 'بريطانيا' }, label: { en: 'Birmingham', ar: 'برمنغهام' } },
@@ -263,6 +267,7 @@ const projectsData: {
       { en: 'Non-profit', ar: 'غير ربحي' },
     ],
     image: publicAsset('projects/owis-qarni.jpg'),
+    imageWebp: publicAsset('projects/owis-qarni.webp'),
     tint: '#4a1220',
     link: 'https://owis-ten.vercel.app',
     metric: {
@@ -293,6 +298,7 @@ const projectsData: {
       { en: 'Cairo', ar: 'القاهرة' },
     ],
     image: publicAsset('projects/niola-lounge.jpg'),
+    imageWebp: publicAsset('projects/niola-lounge.webp'),
     tint: '#3d2c11',
     link: 'https://niola-lounge.vercel.app',
     metric: {
@@ -323,6 +329,7 @@ const projectsData: {
       { en: 'Michigan, USA', ar: 'ميشيغان، أمريكا' },
     ],
     image: publicAsset('projects/laqmah-cafe.jpg'),
+    imageWebp: publicAsset('projects/laqmah-cafe.webp'),
     tint: '#3d1520',
     link: 'https://laqmah.vercel.app',
     metric: {
@@ -353,6 +360,7 @@ const projectsData: {
       { en: 'Non-profit commerce', ar: 'تجارة خيرية' },
     ],
     image: publicAsset('projects/beckah-exchange.jpg'),
+    imageWebp: publicAsset('projects/beckah-exchange.webp'),
     tint: '#123a2a',
     link: 'https://beckahex.org',
     metric: {
@@ -378,6 +386,7 @@ export function getProjects(lang: Lang): Project[] {
     blurb: p.blurb[lang],
     tags: p.tags.map((tag) => tag[lang]),
     image: p.image,
+    imageWebp: p.imageWebp,
     tint: p.tint,
     link: p.link,
     metric: { value: p.metric.value[lang], label: p.metric.label[lang] },

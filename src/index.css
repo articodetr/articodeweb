@@ -410,3 +410,368 @@
     mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
   }
 }
+
+/* ------------------------------------------------------------------ *
+ * Project showcase — the coverflow stage on the home page
+ *
+ * The stage publishes its choreography as unitless custom properties; the
+ * component reads them once per resize and writes each slide's transform.
+ * Everything a card does at a given distance from the centre is derived from
+ * --d (0 → 1 within one slot), --d2 (0 → 1 into the second ring) and --blur.
+ * ------------------------------------------------------------------ */
+@layer components {
+  .pc-stage {
+    --pc-w: min(78vw, 24rem);
+    --pc-aspect: 2 / 3;
+    --pc-rotate: 12;
+    --pc-scale: 0.86;
+    --pc-overlap: 0.1;
+    --pc-depth: 70;
+    --pc-far: 0.5;
+    --pc-blur: 0px;
+    --pc-fade: 0.16;
+    --pc-dim: 0.34;
+    --pc-perspective: 1400px;
+    --pc-ease: cubic-bezier(0.22, 1, 0.36, 1);
+    position: relative;
+  }
+  /* Card widths are capped by the viewport height so the stage fits on screen;
+     `vh` here, `svh` below for browsers that have it. */
+  @media (min-width: 640px) {
+    .pc-stage {
+      --pc-w: max(25rem, min(70vw, 34rem, calc((100vh - 14rem) * 1.25)));
+      --pc-aspect: 5 / 4;
+      --pc-rotate: 18;
+      --pc-overlap: 0.18;
+      --pc-depth: 110;
+      --pc-dim: 0.38;
+    }
+  }
+  @media (min-width: 1024px) {
+    .pc-stage {
+      --pc-w: max(32.5rem, min(46vw, 54rem, calc(clamp(26rem, 100vh - 24rem, 40rem) * 1.25)));
+      --pc-rotate: 26;
+      --pc-scale: 0.84;
+      --pc-overlap: 0.3;
+      --pc-depth: 160;
+      --pc-blur: 2.5px;
+      --pc-dim: 0.34;
+      --pc-perspective: 1800px;
+    }
+  }
+  @media (min-width: 1536px) {
+    .pc-stage {
+      --pc-w: max(32.5rem, min(40vw, 54rem, calc(clamp(26rem, 100vh - 24rem, 40rem) * 1.25)));
+      --pc-overlap: 0.32;
+    }
+  }
+  @supports (height: 1svh) {
+    @media (min-width: 640px) {
+      .pc-stage {
+        --pc-w: max(25rem, min(70vw, 34rem, calc((100svh - 14rem) * 1.25)));
+      }
+    }
+    @media (min-width: 1024px) {
+      .pc-stage {
+        --pc-w: max(32.5rem, min(46vw, 54rem, calc(clamp(26rem, 100svh - 24rem, 40rem) * 1.25)));
+      }
+    }
+    @media (min-width: 1536px) {
+      .pc-stage {
+        --pc-w: max(32.5rem, min(40vw, 54rem, calc(clamp(26rem, 100svh - 24rem, 40rem) * 1.25)));
+      }
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .pc-stage {
+      --pc-rotate: 0;
+      --pc-depth: 0;
+      --pc-blur: 0px;
+      --pc-overlap: 0.06;
+      --pc-scale: 0.9;
+    }
+  }
+
+  /* Soft floor light under the centre card — the stage, not a neon glow. */
+  .pc-floor {
+    position: absolute;
+    inset-inline: 0;
+    bottom: 3rem;
+    height: 50%;
+    pointer-events: none;
+    background: radial-gradient(
+      ellipse 36% 60% at 50% 100%,
+      rgba(53, 75, 232, 0.26),
+      rgba(22, 194, 218, 0.07) 48%,
+      transparent 74%
+    );
+    -webkit-mask-image: linear-gradient(to bottom, #000 55%, transparent);
+    mask-image: linear-gradient(to bottom, #000 55%, transparent);
+  }
+
+  .pc-swiper {
+    --pc-dur: 0ms;
+    --swiper-wrapper-transition-timing-function: var(--pc-ease);
+    overflow: hidden;
+    perspective: var(--pc-perspective);
+    padding: 1.25rem 0 1.5rem;
+  }
+  @media (min-width: 1024px) {
+    .pc-swiper {
+      padding: 1.75rem 0 1.5rem;
+    }
+  }
+  .pc-swiper .swiper-wrapper {
+    transform-style: preserve-3d;
+  }
+
+  .pc-slide {
+    width: var(--pc-w);
+    height: auto;
+    transition-property: transform;
+    transition-duration: var(--pc-dur);
+    transition-timing-function: var(--pc-ease);
+    backface-visibility: hidden;
+  }
+
+  .pc-card {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    width: 100%;
+    aspect-ratio: var(--pc-aspect);
+    border-radius: 1.5rem;
+    box-shadow:
+      0 30px 60px -26px rgba(0, 0, 0, 0.75),
+      0 12px 28px -18px rgba(0, 0, 0, 0.6);
+    opacity: calc(1 - var(--pc-fade) * (var(--d, 0) + 0.5 * var(--d2, 0)));
+    transition: opacity var(--pc-dur) var(--pc-ease);
+    transform: translateZ(0);
+  }
+  @media (min-width: 768px) {
+    .pc-card {
+      border-radius: 1.85rem;
+    }
+  }
+  /* Glass edge: hairline border plus a top highlight. */
+  .pc-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 6;
+    border-radius: inherit;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16);
+    pointer-events: none;
+  }
+
+  /* Image + wash: the only layer that receives depth-of-field, so captions and
+     badges stay crisp. `none`, not blur(0px): a zero blur still costs a pass. */
+  .pc-card-media {
+    position: absolute;
+    inset: 0;
+    transform: scale(1.015);
+    filter: none;
+    transition: filter var(--pc-dur) var(--pc-ease);
+  }
+  @media (min-width: 1024px) and (prefers-reduced-motion: no-preference) {
+    .pc-card-media {
+      filter: blur(calc(var(--pc-blur) * var(--blur, 0)));
+    }
+  }
+  .pc-card-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 0;
+    user-select: none;
+    -webkit-user-drag: none;
+  }
+  .pc-card-wash,
+  .pc-card-scrim,
+  .pc-card-dim {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+  .pc-card-scrim {
+    background: linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.56) 0%,
+      rgba(0, 0, 0, 0.26) 22%,
+      transparent 46%
+    );
+  }
+  .pc-card-dim {
+    z-index: 3;
+    background: #08090b;
+    opacity: min(1, calc(var(--pc-dim) * (var(--d, 0) + 0.7 * var(--d2, 0))));
+    transition: opacity var(--pc-dur) var(--pc-ease);
+  }
+
+  .pc-badge {
+    @apply absolute z-[4] inline-flex h-9 items-center rounded-full border border-white/20 bg-ink-950/60 px-3.5 text-xs font-bold text-white backdrop-blur-md md:h-10 md:px-4 md:text-sm;
+    opacity: calc(1 - var(--d, 0));
+    transition: opacity var(--pc-dur) var(--pc-ease);
+  }
+
+  .pc-chip {
+    @apply inline-flex items-center rounded-full border border-white/15 bg-ink-950/40 px-2.5 py-0.5 text-[0.66rem] font-semibold text-white/90 md:text-xs;
+  }
+
+  .pc-caption {
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0;
+    z-index: 4;
+    padding: 2.5rem 1.25rem 1.25rem;
+    background: linear-gradient(to top, rgba(8, 9, 11, 0.72), rgba(8, 9, 11, 0.3) 55%, transparent);
+    opacity: clamp(0, calc((var(--d, 0) - 0.4) / 0.35), 1);
+    transition: opacity var(--pc-dur) var(--pc-ease);
+    pointer-events: none;
+  }
+  @media (min-width: 768px) {
+    .pc-caption {
+      padding: 3rem 1.75rem 1.75rem;
+    }
+  }
+  /* The inner edge tucks behind the centre card, so the caption hugs the outer one. */
+  .pc-slide[data-side='left'] .pc-caption {
+    text-align: left;
+  }
+  .pc-slide[data-side='right'] .pc-caption {
+    text-align: right;
+  }
+
+  .pc-panel {
+    position: absolute;
+    inset-inline: 0.75rem;
+    bottom: 0.75rem;
+    z-index: 4;
+    /* Without backdrop blur (below lg) the glass needs an opaque floor, or the
+       screenshot's own headline ghosts through behind the copy. */
+    background: linear-gradient(155deg, var(--pc-tint-solid) 0%, rgba(8, 9, 11, 0.94) 60%);
+    opacity: clamp(0, calc(1 - var(--d, 0) / 0.5), 1);
+    transform: translateY(calc(var(--d, 0) * 16px));
+    transition-property: opacity, transform;
+    transition-duration: var(--pc-dur);
+    transition-timing-function: var(--pc-ease);
+  }
+  @media (min-width: 768px) {
+    .pc-panel {
+      inset-inline: 1rem;
+      bottom: 1rem;
+    }
+  }
+  @media (min-width: 1024px) {
+    .pc-panel {
+      background: linear-gradient(155deg, var(--pc-tint) 0%, rgba(8, 9, 11, 0.84) 64%);
+    }
+  }
+  .pc-slide:not(.swiper-slide-active) .pc-panel {
+    pointer-events: none;
+  }
+  /* Landscape phones: the card is capped by the short viewport, so the panel
+     drops to the essentials instead of outgrowing it. */
+  @media (min-width: 640px) and (max-height: 540px) {
+    .pc-panel {
+      padding: 1rem 1.25rem;
+    }
+    .pc-panel ul,
+    .pc-panel dl {
+      display: none;
+    }
+    .pc-panel h3 {
+      margin-top: 0;
+      font-size: 1.25rem;
+    }
+    .pc-panel p {
+      -webkit-line-clamp: 1;
+    }
+    .pc-panel > div:last-child {
+      margin-top: 0.75rem;
+      padding-top: 0.75rem;
+    }
+  }
+
+  /* Controls */
+  .pc-arrow {
+    @apply flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-white/85 transition-colors duration-300 hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .pc-dots {
+    --pc-progress: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+  /* 24px-wide, 44px-tall hit areas around an 8px bar (WCAG 2.5.8). */
+  .pc-dot {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.5rem;
+    min-height: 2.75rem;
+    padding: 0 0.5rem;
+    border-radius: 9999px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  @media (pointer: coarse) {
+    .pc-dot {
+      padding: 0 0.6rem;
+    }
+  }
+  .pc-dot:focus-visible {
+    outline: 2px solid #91a2ff;
+    outline-offset: -4px;
+  }
+  .pc-dot-bar {
+    position: relative;
+    display: block;
+    height: 0.5rem;
+    width: 0.5rem;
+    overflow: hidden;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.28);
+    transition:
+      width 0.55s var(--pc-ease, cubic-bezier(0.22, 1, 0.36, 1)),
+      background-color 0.3s ease;
+  }
+  .pc-dot:hover .pc-dot-bar {
+    background: rgba(255, 255, 255, 0.5);
+  }
+  .pc-dot.is-active .pc-dot-bar {
+    width: 2.25rem;
+    background: rgba(255, 255, 255, 0.16);
+  }
+  /* The active pill fills over the autoplay delay (driven by --pc-progress). */
+  .pc-dot-bar::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #586dff, #16c2da);
+    transform: scaleX(var(--pc-progress));
+    transform-origin: 0 50%;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  html[dir='rtl'] .pc-dot-bar::after {
+    background: linear-gradient(270deg, #586dff, #16c2da);
+    transform-origin: 100% 50%;
+  }
+  .pc-dot.is-active .pc-dot-bar::after {
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pc-dot-bar,
+    .pc-dot-bar::after,
+    .pc-arrow {
+      transition: none;
+    }
+  }
+}

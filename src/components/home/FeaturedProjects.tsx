@@ -1,71 +1,41 @@
-import { useRef } from 'react';
 import {
-  motion,
-  useReducedMotion,
-  useScroll,
-  useSpring,
-  useTransform,
-  type MotionValue,
-} from 'framer-motion';
-import { ArrowUpRight } from 'lucide-react';
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type FocusEvent,
+  type ReactNode,
+} from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
+import { ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { A11y, Autoplay } from 'swiper/modules';
+import type { Swiper as SwiperClass } from 'swiper/types';
+import 'swiper/css';
 import { SectionHeading } from '@/components/SectionHeading';
-import { EASE_OUT as EASE } from '@/lib/motionTokens';
+import { Reveal } from '@/components/motion';
+import { ProjectCard } from '@/components/home/ProjectCard';
+import { EASE, useIsRtl } from '@/lib/motionTokens';
 import { getProjects, type Project } from '@/data/content';
 import { useLang } from '@/i18n';
 
-const pad = (n: number) => String(n).padStart(2, '0');
-
-/** Brand hex → rgba(), so one tint token can drive washes at several opacities. */
-function rgba(hex: string, alpha: number) {
-  const n = parseInt(hex.replace('#', ''), 16);
-  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`;
-}
-
-function segment(p: number, a: number, b: number) {
-  if (b <= a) return p >= b ? 1 : 0;
-  const clamped = Math.min(1, Math.max(0, (p - a) / (b - a)));
-  return clamped * clamped * (3 - 2 * clamped);
-}
+const AUTOPLAY_DELAY = 5000;
+const SPEED = 1000;
+const MODULES = [Autoplay, A11y];
+/** Second-ring cards travel this much further inward (as a multiple of the first-ring pull). */
+const FAR_PULL = 1.3;
 
 export function FeaturedProjects() {
   const { lang, t } = useLang();
-  const reduceMotion = useReducedMotion();
   const projects = getProjects(lang);
-  const stackRef = useRef<HTMLDivElement>(null);
-
-  const { scrollYProgress } = useScroll({
-    target: stackRef,
-    offset: ['start start', 'end end'],
-  });
-  const smoothed = useSpring(scrollYProgress, { stiffness: 72, damping: 26, mass: 0.82 });
-  const progress = useTransform(smoothed, [0, 0.86, 1], [0, 1, 1]);
-
-  if (reduceMotion) {
-    return (
-      <section id="projects" className="relative overflow-clip bg-ink-950 py-20 text-white md:py-28">
-        <div className="absolute inset-0 bg-gradient-to-b from-ink-900 via-ink-950 to-ink-950" />
-        <div className="relative mx-auto w-full max-w-[116rem] px-5 sm:px-8 lg:px-12">
-          <div className="mb-12 md:mb-16">
-            <SectionHeading
-              eyebrow={t.home.projectsEyebrow}
-              title={t.home.projectsTitle}
-              description={t.home.projectsDescription}
-              align="center"
-              tone="dark"
-            />
-          </div>
-          <div className="space-y-6 md:space-y-8">
-            {projects.map((p, i) => (
-              <FlatCard key={p.id} project={p} index={i} actionLabel={t.home.visitSite} />
-            ))}
-          </div>
-        </div>
-      </section>
-    );
-  }
+  const [active, setActive] = useState(0);
 
   return (
-    <section id="projects" className="relative scroll-mt-20 overflow-clip bg-ink-950 py-20 text-white md:scroll-mt-24 md:py-28">
+    <section
+      id="projects"
+      className="relative scroll-mt-20 overflow-clip bg-ink-950 py-20 text-white md:scroll-mt-24 md:py-28"
+    >
       <div className="absolute inset-0 bg-gradient-to-b from-ink-900 via-ink-950 to-ink-950" />
       <div
         className="pointer-events-none absolute inset-0"
@@ -74,10 +44,9 @@ export function FeaturedProjects() {
             'radial-gradient(ellipse 70% 45% at 50% 0%, rgba(53,75,232,0.16), transparent 65%), radial-gradient(ellipse 50% 35% at 100% 100%, rgba(22,194,218,0.10), transparent 60%)',
         }}
       />
-      <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/35 to-transparent" />
 
-      <div className="relative mx-auto w-full max-w-[116rem] px-5 sm:px-8 lg:px-12">
-        <div className="mb-12 md:mb-16">
+      <div className="relative">
+        <div className="container-x mb-8 md:mb-12">
           <SectionHeading
             eyebrow={t.home.projectsEyebrow}
             title={t.home.projectsTitle}
@@ -87,195 +56,450 @@ export function FeaturedProjects() {
           />
         </div>
 
-        {/* Mobile */}
-        <div className="space-y-6 md:hidden">
-          {projects.map((p, i) => (
-            <motion.div
-              key={p.id}
-              initial={{ opacity: 0, y: 44 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.25 }}
-              transition={{ duration: 0.55, ease: EASE }}
-            >
-              <FlatCard project={p} index={i} actionLabel={t.home.visitSite} />
-            </motion.div>
-          ))}
-        </div>
-
-        {/* Desktop Stack */}
-        <div
-          ref={stackRef}
-          data-projects-stack
-          className="relative hidden md:block"
-          style={{ height: `calc(${projects.length * 108}svh)` }}
-        >
-          <div className="sticky top-[6.5rem] h-[calc(100svh-8rem)] min-h-[30rem] xl:top-[7rem] xl:h-[calc(100svh-8.75rem)]">
-            <div className="relative h-full overflow-hidden rounded-[1.75rem] border-[10px] border-ink-800/60 bg-ink-900 shadow-2xl shadow-black/40 md:rounded-[2.1rem]">
-              {projects.map((p, i) => (
-                <StackedCard
-                  key={p.id}
-                  project={p}
-                  index={i}
-                  total={projects.length}
-                  progress={progress}
-                  actionLabel={t.home.visitSite}
-                />
-              ))}
-            </div>
-          </div>
-        </div>
+        <ProjectShowcase projects={projects} active={active} onActiveChange={setActive} />
       </div>
     </section>
   );
 }
 
-function StackedCard({
-  project,
-  index,
-  total,
-  progress,
-  actionLabel,
-}: {
-  project: Project;
-  index: number;
-  total: number;
-  progress: MotionValue<number>;
-  actionLabel: string;
-}) {
-  const per = total > 1 ? 1 / (total - 1) : 1;
-  const enterStart = index === 0 ? 0 : (index - 1) * per;
-  const enterEnd = index === 0 ? 0.001 : index * per;
-  const settleStart = index * per;
-  const settleEnd = index < total - 1 ? (index + 1) * per : 1;
+/* ------------------------------------------------------------------ *
+ * Stage choreography
+ * ------------------------------------------------------------------ */
 
-  const y = useTransform(progress, (p) => {
-    if (index > 0) {
-      const entered = segment(p, enterStart, enterEnd);
-      if (entered < 1) return `${(1 - entered) * 112}%`;
+type Tuning = {
+  /** Max tilt of a first-ring card, in degrees. */
+  rotate: number;
+  /** Scale of a first-ring card. */
+  scale: number;
+  /** How far a first-ring card is pulled toward the centre, as a fraction of its width. */
+  overlap: number;
+  /** How far a first-ring card recedes from the viewer, in px. */
+  depth: number;
+  /** Extra tilt / shrink / depth the second ring adds, as a multiple of the first ring's. */
+  far: number;
+};
+
+/** The stage publishes its per-breakpoint choreography as unitless custom properties (see index.css). */
+function readTuning(el: HTMLElement): Tuning {
+  const css = getComputedStyle(el);
+  const read = (name: string, fallback: number) => {
+    const value = parseFloat(css.getPropertyValue(name));
+    return Number.isFinite(value) ? value : fallback;
+  };
+  return {
+    rotate: read('--pc-rotate', 24),
+    scale: read('--pc-scale', 0.84),
+    overlap: read('--pc-overlap', 0.3),
+    depth: read('--pc-depth', 150),
+    far: read('--pc-far', 0.5),
+  };
+}
+
+/**
+ * Positions every slide from its distance to the stage centre. It works from
+ * geometry (like Swiper's own coverflow) rather than `slide.progress`, so it is
+ * direction-agnostic: in RTL the "next" card sits physically on the left and
+ * still leans inward. Swiper interpolates between the states it sets here with
+ * the same duration and easing as the track, so the cards glide in step.
+ */
+function choreograph(swiper: SwiperClass, tuning: Tuning) {
+  const { slides, slidesSizesGrid, width, translate } = swiper;
+  const centre = -translate + width / 2;
+
+  for (let i = 0; i < slides.length; i += 1) {
+    const slide = slides[i];
+    const size = slidesSizesGrid[i] || slide.swiperSlideSize || 0;
+    if (!size) continue;
+
+    const offset = slide.swiperSlideOffset ?? 0;
+    // v: 0 at the centre, -1 one slot to the left, +1 one slot to the right.
+    const v = -(centre - offset - size / 2) / size;
+    const distance = Math.abs(v);
+    const near = Math.min(distance, 1);
+    const far = Math.min(Math.max(distance - 1, 0), 1);
+    const side = v < 0 ? -1 : 1;
+    const reach = near + tuning.far * far;
+
+    const rotate = -side * tuning.rotate * reach;
+    const scale = 1 - (1 - tuning.scale) * reach;
+    const pull = -side * size * tuning.overlap * (near + FAR_PULL * far);
+    const depth = -tuning.depth * reach;
+
+    slide.style.transform = `translate3d(${pull.toFixed(2)}px, 0px, ${depth.toFixed(
+      2
+    )}px) rotateY(${rotate.toFixed(3)}deg) scale(${scale.toFixed(4)})`;
+    slide.style.zIndex = String(20 - Math.round(distance * 4));
+    slide.style.setProperty('--d', near.toFixed(4));
+    slide.style.setProperty('--d2', far.toFixed(4));
+    // Blur is the one costly effect, so only the first ring carries it; it fades
+    // out again before a card is fully tucked behind its neighbour.
+    const blur = distance < 1.5 ? near : Math.max(0, 1 - (distance - 1.5) * 2);
+    slide.style.setProperty('--blur', blur.toFixed(4));
+    // Lets the card push its side caption toward the edge that stays uncovered.
+    slide.dataset.side = side < 0 ? 'left' : 'right';
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Showcase
+ * ------------------------------------------------------------------ */
+
+function ProjectShowcase({
+  projects,
+  active,
+  onActiveChange,
+}: {
+  projects: Project[];
+  active: number;
+  onActiveChange: (index: number) => void;
+}) {
+  const { lang, t } = useLang();
+  const isRtl = useIsRtl();
+  const reduced = !!useReducedMotion();
+  const count = projects.length;
+  // Loop mode needs more slides than can fit on the widest screens, so the
+  // list is repeated; every counter below works on `realIndex % count`.
+  const copies = Math.max(1, Math.ceil(9 / Math.max(count, 1)));
+
+  const stageRef = useRef<HTMLDivElement>(null);
+  const swiperRef = useRef<SwiperClass | null>(null);
+  const tuningRef = useRef<Tuning | null>(null);
+  const dotsRef = useRef<HTMLDivElement>(null);
+  const activeRef = useRef(active);
+  activeRef.current = active;
+
+  // Autoplay runs only while it makes sense: section in view, not held by a
+  // keyboard user, not paused by hand. (Hover is handled by Swiper itself.)
+  const holds = useRef({ inView: true, focusWithin: false, userPaused: false });
+  const modality = useRef<'pointer' | 'keyboard'>('pointer');
+  const [userPaused, setUserPaused] = useState(false);
+  const announceNext = useRef(false);
+  const hovered = useRef(false);
+  const recoverTimer = useRef(0);
+  const [announcement, setAnnouncement] = useState('');
+
+  const syncAutoplay = useCallback(() => {
+    const swiper = swiperRef.current;
+    if (!swiper || swiper.destroyed || !swiper.autoplay) return;
+    const { inView, focusWithin, userPaused: paused } = holds.current;
+    const shouldRun = !reduced && inView && !focusWithin && !paused;
+    if (shouldRun && !swiper.autoplay.running) swiper.autoplay.start();
+    if (!shouldRun && swiper.autoplay.running) swiper.autoplay.stop();
+  }, [reduced]);
+
+  // The keypress that tabs focus *into* the stage lands on whatever was focused
+  // before it, so input modality is tracked at the window.
+  useEffect(() => {
+    const onKey = () => {
+      modality.current = 'keyboard';
+    };
+    const onPointer = () => {
+      modality.current = 'pointer';
+    };
+    window.addEventListener('keydown', onKey, true);
+    window.addEventListener('pointerdown', onPointer, true);
+    return () => {
+      window.removeEventListener('keydown', onKey, true);
+      window.removeEventListener('pointerdown', onPointer, true);
+    };
+  }, []);
+
+  useEffect(() => {
+    const el = stageRef.current;
+    if (!el || typeof IntersectionObserver === 'undefined') return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        // Entries can arrive batched (e.g. a resize followed by a restore);
+        // only the most recent one describes the current state.
+        holds.current.inView = entries[entries.length - 1].isIntersecting;
+        syncAutoplay();
+      },
+      { rootMargin: '12% 0px', threshold: 0.05 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [syncAutoplay]);
+
+  // Props handed to <Swiper> must be referentially stable across re-renders:
+  // the React wrapper diffs them and calls swiper.update() (a full re-measure,
+  // mid-transition) for anything that looks new. The start slide is computed
+  // only when the language flips, which is also when the Swiper remounts.
+  const initialSlide = useMemo(
+    () => Math.floor(copies / 2) * count + activeRef.current,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [lang, copies, count]
+  );
+  const autoplay = useMemo(
+    () =>
+      reduced
+        ? false
+        : {
+            delay: AUTOPLAY_DELAY,
+            disableOnInteraction: false,
+            pauseOnMouseEnter: true,
+            waitForTransition: true,
+          },
+    [reduced]
+  );
+  const a11y = useMemo(
+    () => ({
+      prevSlideMessage: t.home.prevProject,
+      nextSlideMessage: t.home.nextProject,
+      containerMessage: t.home.projectsCarousel,
+      containerRole: 'region',
+      containerRoleDescriptionMessage: t.home.carousel,
+      itemRoleDescriptionMessage: t.home.slide,
+      slideLabelMessage: '',
+      wrapperLiveRegion: false,
+    }),
+    [t]
+  );
+
+  const slides = useMemo(
+    () =>
+      Array.from({ length: copies }, (_, copy) =>
+        projects.map((project, index) => ({ project, index, copy }))
+      ).flat(),
+    [projects, copies]
+  );
+
+  const layout = useCallback((swiper: SwiperClass) => {
+    if (!tuningRef.current) tuningRef.current = readTuning(swiper.el);
+    choreograph(swiper, tuningRef.current);
+  }, []);
+
+  /** Move `delta` slides in either direction, wrapping through the loop. */
+  const step = (delta: number) => {
+    const swiper = swiperRef.current;
+    if (!swiper || swiper.destroyed || swiper.animating || delta === 0) return;
+    announceNext.current = true;
+    swiper.loopFix({ direction: delta > 0 ? 'next' : 'prev' });
+    // Commit the loop teleport (a reflow) before the animated move, as Swiper's own
+    // slideNext does. Without it the track can end where it started, no transition
+    // runs, and Swiper waits forever for a transitionend.
+    swiper.wrapperEl.getBoundingClientRect();
+    swiper.slideTo(swiper.activeIndex + delta);
+  };
+
+  /** Jump to a project by the shortest path around the ring. */
+  const goTo = (index: number) => {
+    const swiper = swiperRef.current;
+    if (!swiper) return;
+    let delta = index - (swiper.realIndex % count);
+    if (delta > count / 2) delta -= count;
+    if (delta < -count / 2) delta += count;
+    step(delta);
+  };
+
+  const togglePause = () => {
+    holds.current.userPaused = !holds.current.userPaused;
+    setUserPaused(holds.current.userPaused);
+    syncAutoplay();
+  };
+
+  // Keyboard focus inside the stage holds the carousel still; a mouse click on
+  // the controls also focuses them, so only keyboard-driven focus counts.
+  const onFocus = (event: FocusEvent<HTMLDivElement>) => {
+    let keyboard = modality.current === 'keyboard';
+    try {
+      keyboard = (event.target as HTMLElement).matches(':focus-visible');
+    } catch {
+      // Engines without :focus-visible fall back to the modality tracker.
     }
-    return `${(index < total - 1 ? segment(p, settleStart, settleEnd) : 0) * -2.2}%`;
-  });
+    if (!keyboard) return;
+    holds.current.focusWithin = true;
+    syncAutoplay();
+  };
+  const onBlur = (event: FocusEvent<HTMLDivElement>) => {
+    if (event.currentTarget.contains(event.relatedTarget as Node | null)) return;
+    holds.current.focusWithin = false;
+    syncAutoplay();
+  };
 
-  const scale = useTransform(
-    progress,
-    (p) => 1 - (index < total - 1 ? segment(p, settleStart, settleEnd) : 0) * 0.018
-  );
+  const current = projects[active] ?? projects[0];
 
   return (
-    <motion.article
-      data-project-card={project.id}
-      style={{ y, scale, zIndex: index + 1, backgroundColor: project.tint }}
-      className="absolute inset-0 origin-center overflow-hidden will-change-transform"
+    <div
+      ref={stageRef}
+      className="pc-stage"
+      dir={isRtl ? 'rtl' : 'ltr'}
+      onFocus={onFocus}
+      onBlur={onBlur}
     >
-      <CardInner project={project} index={index} actionLabel={actionLabel} />
-    </motion.article>
-  );
-}
+      <div className="pc-floor" aria-hidden="true" />
 
-function FlatCard({
-  project,
-  index,
-  actionLabel,
-}: {
-  project: Project;
-  index: number;
-  actionLabel: string;
-}) {
-  return (
-    <article
-      data-project-card={project.id}
-      style={{ backgroundColor: project.tint }}
-      className="relative min-h-[34rem] overflow-hidden rounded-[28px] border border-white/10 shadow-xl shadow-black/25 sm:min-h-[30rem] md:min-h-[28rem]"
-    >
-      <CardInner project={project} index={index} actionLabel={actionLabel} />
-    </article>
-  );
-}
+      <Reveal y={36} blur={0} amount={0.15} duration={0.8}>
+        <Swiper
+          key={lang}
+          dir={isRtl ? 'rtl' : 'ltr'}
+          className="pc-swiper"
+          modules={MODULES}
+          loop
+          centeredSlides
+          slidesPerView="auto"
+          spaceBetween={0}
+          speed={reduced ? 0 : SPEED}
+          initialSlide={initialSlide}
+          grabCursor
+          watchSlidesProgress
+          // Keeps two extra slides buffered on each side so a two-slot jump (dots,
+          // second-ring taps) is always reachable, even where only two slides fit.
+          loopAdditionalSlides={2}
+          // With slidesPerView "auto", Swiper re-measures every slide whenever an image
+          // inside it loads, which interrupts the running card transitions. The cards
+          // are sized by CSS and the images are native loading="lazy", so that machinery
+          // is switched off.
+          lazyPreload={false}
+          threshold={6}
+          longSwipesRatio={0.25}
+          autoplay={autoplay}
+          a11y={a11y}
+          onSwiper={(swiper) => {
+            swiperRef.current = swiper;
+            tuningRef.current = readTuning(swiper.el);
+            choreograph(swiper, tuningRef.current);
+            syncAutoplay();
+          }}
+          onClick={(swiper) => {
+            // Tapping a side card brings it to the centre through the same path as
+            // the arrows; Swiper's own slideToClickedSlide picks its route from DOM
+            // order and can misjudge the direction at the loop seam.
+            const { clickedIndex, activeIndex } = swiper;
+            if (clickedIndex === undefined || clickedIndex === activeIndex) return;
+            step(Math.max(-2, Math.min(2, clickedIndex - activeIndex)));
+          }}
+          onPointerEnter={(event) => {
+            if (event.pointerType === 'mouse') hovered.current = true;
+          }}
+          onPointerLeave={(event) => {
+            if (event.pointerType === 'mouse') hovered.current = false;
+          }}
+          onSetTranslate={layout}
+          onSetTransition={(swiper, duration) => {
+            swiper.el.style.setProperty('--pc-dur', `${duration}ms`);
+          }}
+          onResize={(swiper) => {
+            tuningRef.current = readTuning(swiper.el);
+            // Swiper re-positions the loop after a resize with a zero-duration move
+            // (deferred to the next frame), which pauses autoplay to wait for a
+            // transitionend that never comes. Nudge it back once things settle.
+            window.clearTimeout(recoverTimer.current);
+            recoverTimer.current = window.setTimeout(() => {
+              if (swiper.destroyed || !swiper.autoplay) return;
+              const { running, paused } = swiper.autoplay;
+              if (running && paused && !swiper.animating && !hovered.current) {
+                swiper.autoplay.resume();
+              }
+            }, 700);
+          }}
+          onSlideChange={(swiper) => {
+            const index = swiper.realIndex % count;
+            onActiveChange(index);
+            if (announceNext.current) {
+              announceNext.current = false;
+              setAnnouncement(
+                t.home.projectPosition
+                  .replace('{name}', projects[index].name)
+                  .replace('{index}', String(index + 1))
+                  .replace('{total}', String(count))
+              );
+            }
+          }}
+          onAutoplayTimeLeft={(_swiper, _timeLeft, fraction) => {
+            const elapsed = Math.min(1, Math.max(0, 1 - fraction));
+            dotsRef.current?.style.setProperty('--pc-progress', elapsed.toFixed(4));
+          }}
+        >
+          {slides.map(({ project, index, copy }) => (
+            <SwiperSlide key={`${project.id}-${copy}`} className="pc-slide">
+              <ProjectCard
+                project={project}
+                index={index}
+                total={count}
+                actionLabel={t.home.viewProject}
+              />
+            </SwiperSlide>
+          ))}
 
-function CardInner({
-  project,
-  index,
-  actionLabel,
-}: {
-  project: Project;
-  index: number;
-  actionLabel: string;
-}) {
-  const { tint } = project;
-  return (
-    <>
-      <img
-        src={project.image}
-        alt={project.name}
-        loading="lazy"
-        decoding="async"
-        className="absolute inset-0 h-full w-full object-cover contrast-105 saturate-105"
-        onError={(e) => {
-          const img = e.currentTarget;
-          img.src = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 800'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23354be8;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%2316c2da;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='1200' height='800' fill='url(%23g)'/%3E%3C/svg%3E`;
-        }}
-      />
-      {/* Brand wash: colours the card with the client's own hue instead of flat black. */}
-      <div
-        className="pointer-events-none absolute inset-0"
-        style={{
-          background: `radial-gradient(135% 100% at 50% 112%, ${rgba(tint, 0.78)} 0%, ${rgba(
-            tint,
-            0.28
-          )} 40%, transparent 70%)`,
-        }}
-      />
-      {/* Just enough scrim at the top for the badges to read over bright screenshots. */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-black/45 to-transparent md:h-40" />
+          {/* Rendered inside the Swiper element so its hover-pause covers the controls too. */}
+          <div slot="container-end" className="container-x">
+            <Reveal y={20} blur={0} delay={0.12} amount={0.5}>
+              <div className="mt-6 flex justify-center md:mt-8">
+                <div className="inline-flex max-w-full items-center gap-0.5 rounded-full border border-white/10 bg-white/[0.06] p-1.5 shadow-[0_18px_50px_-24px_rgba(0,0,0,0.8)] backdrop-blur-md">
+                  <ControlButton onClick={() => step(-1)} label={t.home.prevProject}>
+                    <ChevronLeft className="h-5 w-5 rtl:-scale-x-100" aria-hidden="true" />
+                  </ControlButton>
 
-      <div className="absolute start-5 top-5 flex h-14 min-w-14 items-center justify-center rounded-2xl border border-white/25 bg-ink-950/45 px-4 font-display text-lg font-black text-white backdrop-blur-md md:start-8 md:top-8 md:h-16 md:min-w-16 md:text-2xl">
-        <span dir="ltr" className="tabular-nums">
-          {pad(index + 1)}
-        </span>
-      </div>
-      <div className="absolute end-5 top-5 inline-flex items-center rounded-full border border-white/25 bg-ink-950/45 px-3.5 py-1.5 text-xs font-bold text-white backdrop-blur-md md:end-8 md:top-8">
-        {project.category}
-      </div>
+                  {!reduced && (
+                    <ControlButton
+                      onClick={togglePause}
+                      label={userPaused ? t.home.resumeAutoplay : t.home.pauseAutoplay}
+                    >
+                      {userPaused ? (
+                        <Play className="h-4 w-4 rtl:-scale-x-100" aria-hidden="true" />
+                      ) : (
+                        <Pause className="h-4 w-4" aria-hidden="true" />
+                      )}
+                    </ControlButton>
+                  )}
 
-      <div className="absolute inset-x-0 bottom-0 p-4 sm:p-6 md:p-7 lg:p-9">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between lg:gap-7">
-          <div
-            className="max-w-3xl rounded-[1.35rem] border border-white/12 p-5 text-start shadow-2xl shadow-black/45 backdrop-blur-2xl sm:p-6 md:rounded-[1.6rem] md:p-7"
-            style={{
-              background: `linear-gradient(155deg, ${rgba(tint, 0.66)} 0%, rgba(8, 9, 11, 0.84) 66%)`,
-            }}
-          >
-            <h3 className="font-display text-2xl font-bold leading-tight text-white sm:text-3xl md:text-4xl lg:text-[2.75rem]">
-              {project.name}
-            </h3>
-            <p className="mt-2.5 text-sm font-medium leading-relaxed text-white/85 sm:text-base lg:text-lg">
-              {project.blurb}
-            </p>
-            <div className="mt-5 flex flex-wrap gap-2.5">
-              {project.results.map((r, i) => (
-                <div
-                  key={i}
-                  className="inline-flex items-baseline gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2"
-                >
-                  <span dir="ltr" className="font-display text-sm font-semibold text-cyan-300 md:text-base">
-                    {r.value}
-                  </span>
-                  <span className="text-xs font-medium text-white/75">{r.label}</span>
+                  <div ref={dotsRef} className="pc-dots px-1">
+                    {projects.map((p, i) => (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() => goTo(i)}
+                        aria-label={t.home.showProject.replace('{name}', p.name)}
+                        aria-current={i === active ? 'true' : undefined}
+                        className={`pc-dot${i === active ? ' is-active' : ''}`}
+                      >
+                        <span className="pc-dot-bar" />
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Fixed width, so the pill never re-centres and the arrows stay put. */}
+                  <div className="hidden w-[10.5rem] items-center border-s border-white/10 ps-3 sm:flex md:w-[13rem]">
+                    <motion.span
+                      key={current.id}
+                      initial={reduced ? false : { opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.4, ease: EASE }}
+                      className="block w-full truncate text-sm font-semibold text-white"
+                    >
+                      {current.name}
+                    </motion.span>
+                  </div>
+
+                  <ControlButton onClick={() => step(1)} label={t.home.nextProject}>
+                    <ChevronRight className="h-5 w-5 rtl:-scale-x-100" aria-hidden="true" />
+                  </ControlButton>
                 </div>
-              ))}
-            </div>
+              </div>
+            </Reveal>
           </div>
-          <a
-            href={project.link}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex h-12 shrink-0 items-center justify-center gap-2.5 rounded-full bg-accent-500 px-6 text-sm font-semibold text-white shadow-xl shadow-black/25 transition-all hover:bg-accent-400 focus-visible:outline-white lg:mb-1"
-          >
-            {actionLabel}
-            <ArrowUpRight className="h-4 w-4 rtl:-scale-x-100" />
-          </a>
-        </div>
-      </div>
-    </>
+        </Swiper>
+      </Reveal>
+
+      <span className="sr-only" aria-live="polite" aria-atomic="true">
+        {announcement}
+      </span>
+    </div>
+  );
+}
+
+function ControlButton({
+  onClick,
+  label,
+  children,
+}: {
+  onClick: () => void;
+  label: string;
+  children: ReactNode;
+}) {
+  return (
+    <button type="button" onClick={onClick} aria-label={label} className="pc-arrow">
+      {children}
+    </button>
   );
 }
