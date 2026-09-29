@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowUpRight, Check, Loader2, AlertCircle, Mail, Phone, MapPin, Clock } from 'lucide-react';
+import { ArrowUpRight, Check, Loader2, AlertCircle, Mail, Phone, MapPin, Clock, MessageCircle } from 'lucide-react';
 import { SectionHeading } from '@/components/SectionHeading';
 import { Reveal } from '@/components/motion';
 import { getServices } from '@/data/content';
@@ -8,11 +8,14 @@ import {
   CONTACT_EMAIL_HREF,
   CONTACT_PHONE_DISPLAY,
   CONTACT_PHONE_HREF,
+  getWhatsAppUrl,
 } from '@/data/contact';
 import { supabase } from '@/lib/supabase';
 import { useLang } from '@/i18n';
 
 type Status = 'idle' | 'submitting' | 'success' | 'error';
+type RequiredField = 'name' | 'email' | 'message';
+type FieldErrors = Partial<Record<RequiredField, string>>;
 
 export function ContactPage() {
   const { lang, t } = useLang();
@@ -20,6 +23,7 @@ export function ContactPage() {
 
   const [status, setStatus] = useState<Status>('idle');
   const [errorMsg, setErrorMsg] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
   const [form, setForm] = useState({
     name: '',
@@ -29,23 +33,32 @@ export function ContactPage() {
     message: '',
   });
 
-  const update = (key: keyof typeof form, value: string) =>
+  const update = (key: keyof typeof form, value: string) => {
     setForm((f) => ({ ...f, [key]: value }));
+    if (key === 'name' || key === 'email' || key === 'message') {
+      setFieldErrors((current) => ({ ...current, [key]: undefined }));
+    }
+    if (status === 'error') {
+      setStatus('idle');
+      setErrorMsg('');
+    }
+  };
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (status === 'submitting') return;
 
-    if (!form.name.trim() || !form.email.trim() || !form.message.trim()) {
-      setStatus('error');
-      setErrorMsg(t.contact.errRequired);
-      return;
+    const nextErrors: FieldErrors = {};
+    if (!form.name.trim()) nextErrors.name = t.contact.errName;
+    if (!form.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
+      nextErrors.email = t.contact.errEmail;
     }
+    if (!form.message.trim()) nextErrors.message = t.contact.errMessage;
 
-    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email);
-    if (!emailOk) {
+    if (Object.keys(nextErrors).length > 0) {
+      setFieldErrors(nextErrors);
       setStatus('error');
-      setErrorMsg(t.contact.errEmail);
+      setErrorMsg('');
       return;
     }
 
@@ -57,6 +70,7 @@ export function ContactPage() {
 
     setStatus('submitting');
     setErrorMsg('');
+    setFieldErrors({});
 
     const { error } = await supabase.from('contact_submissions').insert({
       name: form.name.trim(),
@@ -73,6 +87,7 @@ export function ContactPage() {
     }
 
     setStatus('success');
+    setFieldErrors({});
     setForm({ name: '', email: '', company: '', service: '', message: '' });
   };
 
@@ -114,30 +129,43 @@ export function ContactPage() {
               ) : (
                 <form onSubmit={onSubmit} className="space-y-5" noValidate>
                   <div className="grid gap-5 sm:grid-cols-2">
-                    <Field label={t.contact.fullName} required>
+                    <Field id="contact-name" label={t.contact.fullName} error={fieldErrors.name} required>
                       <input
+                        id="contact-name"
+                        name="name"
                         type="text"
+                        autoComplete="name"
                         value={form.name}
                         onChange={(e) => update('name', e.target.value)}
                         placeholder={t.contact.namePlaceholder}
                         className={inputClass}
+                        aria-invalid={!!fieldErrors.name}
+                        aria-describedby={fieldErrors.name ? 'contact-name-error' : undefined}
                       />
                     </Field>
-                    <Field label={t.contact.email} required>
+                    <Field id="contact-email" label={t.contact.email} error={fieldErrors.email} required>
                       <input
+                        id="contact-email"
+                        name="email"
                         type="email"
+                        autoComplete="email"
                         value={form.email}
                         onChange={(e) => update('email', e.target.value)}
                         placeholder={t.contact.emailPlaceholder}
                         className={inputClass}
                         dir="ltr"
+                        aria-invalid={!!fieldErrors.email}
+                        aria-describedby={fieldErrors.email ? 'contact-email-error' : undefined}
                       />
                     </Field>
                   </div>
 
-                  <Field label={t.contact.company}>
+                  <Field id="contact-company" label={t.contact.company}>
                     <input
+                      id="contact-company"
+                      name="company"
                       type="text"
+                      autoComplete="organization"
                       value={form.company}
                       onChange={(e) => update('company', e.target.value)}
                       placeholder={t.contact.companyPlaceholder}
@@ -145,8 +173,33 @@ export function ContactPage() {
                     />
                   </Field>
 
-                  <Field label={t.contact.serviceOfInterest}>
+                  <div className="block">
+                    <span className="mb-2 block text-xs font-semibold text-ink-600">
+                      {t.contact.quickSelectService}
+                    </span>
+                    <div className="flex flex-wrap gap-2 pb-1">
+                      {services.slice(0, 5).map((s) => {
+                        const isSelected = form.service === s.id;
+                        const Icon = s.icon;
+                        return (
+                          <button
+                            key={s.id}
+                            type="button"
+                            onClick={() => update('service', isSelected ? '' : s.id)}
+                            className={`chip-option ${isSelected ? 'chip-option-active' : 'chip-option-inactive'}`}
+                          >
+                            <Icon className="h-3.5 w-3.5" />
+                            <span>{s.title}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <Field id="contact-service" label={t.contact.serviceOfInterest}>
                     <select
+                      id="contact-service"
+                      name="service"
                       value={form.service}
                       onChange={(e) => update('service', e.target.value)}
                       className={inputClass}
@@ -160,18 +213,26 @@ export function ContactPage() {
                     </select>
                   </Field>
 
-                  <Field label={t.contact.projectDetails} required>
+                  <Field id="contact-message" label={t.contact.projectDetails} error={fieldErrors.message} required>
                     <textarea
+                      id="contact-message"
+                      name="message"
                       value={form.message}
                       onChange={(e) => update('message', e.target.value)}
                       rows={5}
                       placeholder={t.contact.detailsPlaceholder}
                       className={`${inputClass} resize-none`}
+                      aria-invalid={!!fieldErrors.message}
+                      aria-describedby={fieldErrors.message ? 'contact-message-error' : undefined}
                     />
                   </Field>
 
-                  {status === 'error' && (
-                    <div className="flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                  {status === 'error' && errorMsg && (
+                    <div
+                      className="flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+                      role="alert"
+                      aria-live="assertive"
+                    >
                       <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
                       <span>{errorMsg}</span>
                     </div>
@@ -194,6 +255,28 @@ export function ContactPage() {
                       </>
                     )}
                   </button>
+
+                  <div className="pt-2 text-center">
+                    <div className="relative my-3 flex items-center justify-center">
+                      <div className="absolute inset-0 flex items-center">
+                        <div className="w-full border-t border-ink-100" />
+                      </div>
+                      <span className="relative bg-white px-3 text-xs font-medium text-ink-400">
+                        {t.contact.orChatWhatsApp}
+                      </span>
+                    </div>
+
+                    <a
+                      href={getWhatsAppUrl(t.whatsapp.quickMessage)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-emerald-300/80 bg-emerald-50/70 px-5 py-3 text-sm font-semibold text-emerald-800 shadow-sm transition-all duration-300 hover:border-emerald-400 hover:bg-emerald-100/70 active:scale-98"
+                    >
+                      <MessageCircle className="h-4.5 w-4.5 fill-emerald-600 text-emerald-600" />
+                      <span>{t.whatsapp.chatOnWhatsApp}</span>
+                      <ArrowUpRight className="h-4 w-4 text-emerald-600 rtl:-scale-x-100" />
+                    </a>
+                  </div>
                 </form>
               )}
             </div>
@@ -249,22 +332,31 @@ const inputClass =
   'w-full rounded-xl border border-ink-200 bg-white px-4 py-3 text-sm text-ink-900 shadow-sm placeholder:text-ink-400 transition-colors duration-300 focus:border-accent-400 focus:outline-none focus:ring-2 focus:ring-accent-200';
 
 function Field({
+  id,
   label,
+  error,
   required,
   children,
 }: {
+  id: string;
   label: string;
+  error?: string;
   required?: boolean;
   children: React.ReactNode;
 }) {
   return (
-    <label className="block">
-      <span className="mb-2 block text-xs font-semibold text-ink-600">
+    <div className="block">
+      <label htmlFor={id} className="mb-2 block text-xs font-semibold text-ink-600">
         {label}
         {required && <span className="ms-1 text-accent-700">*</span>}
-      </span>
+      </label>
       {children}
-    </label>
+      {error && (
+        <p id={`${id}-error`} className="mt-2 text-xs font-medium text-red-700" role="alert">
+          {error}
+        </p>
+      )}
+    </div>
   );
 }
 

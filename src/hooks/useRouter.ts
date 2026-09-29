@@ -3,7 +3,10 @@ import { scrollToElement } from '@/lib/scroller';
 
 export type Route = 'home' | 'expertise' | 'projects' | 'about' | 'contact';
 
-const routes: Route[] = ['home', 'expertise', 'projects', 'about', 'contact'];
+// Keep this in the same order as the sections in HomePage. The scroll spy
+// walks the list top-to-bottom and lets the last section above the activation
+// line win.
+const routes: Route[] = ['home', 'projects', 'expertise', 'about', 'contact'];
 
 export function useRouter() {
   const [route, setRoute] = useState<Route>(parseHash());

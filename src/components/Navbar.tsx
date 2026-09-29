@@ -11,8 +11,8 @@ export function Navbar({ route, navigate }: { route: Route; navigate: (r: Route)
 
   const links: { id: Route; label: string }[] = [
     { id: 'home', label: t.nav.home },
-    { id: 'expertise', label: t.nav.expertise },
     { id: 'projects', label: t.nav.projects },
+    { id: 'expertise', label: t.nav.expertise },
     { id: 'about', label: t.nav.about },
     { id: 'contact', label: t.nav.contact },
   ];
@@ -23,6 +23,15 @@ export function Navbar({ route, navigate }: { route: Route; navigate: (r: Route)
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [open]);
 
   const go = (r: Route) => {
     setOpen(false);
@@ -39,6 +48,12 @@ export function Navbar({ route, navigate }: { route: Route; navigate: (r: Route)
           : 'border-b border-transparent bg-transparent'
       }`}
     >
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:start-4 focus:top-4 focus:z-[100] focus:rounded-xl focus:bg-accent-600 focus:px-4 focus:py-2.5 focus:text-sm focus:font-semibold focus:text-white focus:shadow-xl focus:outline-none"
+      >
+        {t.a11y.skipToContent}
+      </a>
       <nav className="container-x flex h-16 items-center justify-between md:h-20">
         <a
           href="#home"
@@ -112,7 +127,7 @@ export function Navbar({ route, navigate }: { route: Route; navigate: (r: Route)
           <button
             className="flex h-10 w-10 items-center justify-center rounded-lg text-ink-900"
             onClick={() => setOpen((v) => !v)}
-            aria-label={t.nav.toggleMenu}
+            aria-label={open ? t.a11y.closeMenu : t.nav.toggleMenu}
             aria-expanded={open}
             aria-controls="mobile-navigation"
           >

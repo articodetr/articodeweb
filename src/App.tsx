@@ -3,6 +3,7 @@ import { useSmoothScroll } from '@/hooks/useSmoothScroll';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { ScrollProgress } from '@/components/motion';
+import { WhatsAppButton } from '@/components/WhatsAppButton';
 import { HomePage } from '@/pages/HomePage';
 
 function App() {
@@ -14,11 +15,12 @@ function App() {
       <ScrollProgress />
       <Navbar route={route} navigate={navigate} />
 
-      <main className="animate-fade-in">
+      <main id="main-content" className="animate-fade-in">
         <HomePage navigate={navigate} />
       </main>
 
       <Footer navigate={navigate} />
+      <WhatsAppButton />
     </div>
   );
 }

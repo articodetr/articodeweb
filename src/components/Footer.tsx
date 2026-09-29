@@ -56,8 +56,8 @@ export function Footer({ navigate }: { navigate: (r: Route) => void }) {
             <ul className="mt-4 space-y-3 text-sm">
               {([
                 { id: 'home', label: t.nav.home },
-                { id: 'expertise', label: t.nav.expertise },
                 { id: 'projects', label: t.nav.projects },
+                { id: 'expertise', label: t.nav.expertise },
                 { id: 'about', label: t.nav.about },
                 { id: 'contact', label: t.nav.contact },
               ] as { id: Route; label: string }[]).map((l) => (

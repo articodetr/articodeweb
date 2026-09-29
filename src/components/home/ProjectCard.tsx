@@ -85,7 +85,7 @@ export function ProjectCard({ project, index, total, actionLabel }: ProjectCardP
           {project.imageWebp && <source type="image/webp" srcSet={project.imageWebp} />}
           <img
             src={project.image}
-            alt=""
+            alt={project.name}
             width={1200}
             height={800}
             loading="lazy"

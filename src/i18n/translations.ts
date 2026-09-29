@@ -1,48 +1,15 @@
-import { createContext, useContext, useLayoutEffect, useState } from 'react';
-
 export type Lang = 'en' | 'ar';
 
-// Versioned: bumping the key retires any language saved by an earlier visit, so
-// every browser lands on Arabic again and only an explicit switch changes that.
-const STORAGE_KEY = 'articode-lang-v2';
-
-function initialLang(): Lang {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved === 'en' || saved === 'ar') return saved;
-  } catch {
-    /* storage unavailable */
-  }
-  return 'ar';
-}
-
-const LanguageContext = createContext<{ lang: Lang; setLang: (l: Lang) => void }>({
-  lang: 'ar',
-  setLang: () => {},
-});
-
-export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [lang, setLang] = useState<Lang>(initialLang);
-
-  useLayoutEffect(() => {
-    document.documentElement.lang = lang;
-    document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
-    try {
-      localStorage.setItem(STORAGE_KEY, lang);
-    } catch {
-      /* storage unavailable */
-    }
-  }, [lang]);
-
-  return <LanguageContext.Provider value={{ lang, setLang }}>{children}</LanguageContext.Provider>;
-}
-
-export function useLang() {
-  const { lang, setLang } = useContext(LanguageContext);
-  return { lang, setLang, t: ui[lang] };
-}
-
-const en = {
+export const en = {
+  meta: {
+    title: 'ArtiCode | Software, Technology & AI Studio',
+    description:
+      'A software and technology studio engineering systems, products, and intelligence for companies that build for the long run.',
+  },
+  a11y: {
+    skipToContent: 'Skip to main content',
+    closeMenu: 'Close menu',
+  },
   nav: {
     home: 'Home',
     expertise: 'Expertise',
@@ -54,17 +21,28 @@ const en = {
     switchLang: 'العربية',
   },
   hero: {
-    badge: 'Now accepting projects for Q3 2026',
-    line1: 'We engineer',
-    line2: 'software & intelligence',
-    line3: 'that compounds.',
+    badge: 'Now booking new projects',
+    line1: 'We turn ideas into',
+    line2: 'digital products',
+    line3: 'built to grow.',
     description:
-      'ArtiCode is a technology studio building software systems, mobile apps, AI, and cybersecurity solutions for companies that take production seriously.',
-    exploreExpertise: 'Explore expertise',
+      'One senior team to design, build, and launch your web, mobile, and AI product — with the engineering discipline it needs to keep growing.',
+    exploreExpertise: 'View our work',
+    trustBadge: 'Trusted by teams across the UK, GCC & Turkey',
+    liveBadge: 'Live in Production',
+    verifiedDelivery: '100% IP & code handover from day one',
+  },
+  whatsapp: {
+    chatOnWhatsApp: 'Chat on WhatsApp',
+    activeNow: 'Active now · Reply within minutes',
+    quickMessage: 'Hello ArtiCode! I would like to discuss a new project.',
   },
   home: {
     servicesEyebrow: 'What we do',
     servicesTitle: 'Nine disciplines, one accountable team.',
+    servicesSubtitle:
+      'From idea to launch, connected expertise to build your product. Explore what we can create together.',
+    completingEcosystem: 'Completing the ecosystem',
     allExpertise: 'All expertise',
     projectsEyebrow: 'Selected work',
     projectsTitle: 'Projects that earned their numbers.',
@@ -99,6 +77,56 @@ const en = {
     strengthsCtaDescription:
       'Send us the brief. We reply within one business day with an honest read — including when we think we are the wrong fit.',
     strengthsCtaAction: 'Talk to an engineer',
+  },
+  ecosystem: {
+    caption: 'Connected expertise. Limitless possibilities.',
+    hubAlt: 'ArtiCode technology hub',
+    hubLabel: 'One core. Working as one.',
+    hint: 'Select a discipline to explore the details',
+    playAnimation: 'Play animation',
+    pauseAnimation: 'Pause animation',
+  },
+  cycle: {
+    eyebrow: 'Engineering Engine',
+    title: 'An Interlocking Loop Built for Production',
+    description:
+      'Explore the four synchronized disciplines driving every ArtiCode platform from initial architecture to resilient scale.',
+    centerBadge: 'ArtiCode Core',
+    autoCycle: 'Continuous Cycle',
+    steps: [
+      {
+        num: '01',
+        tag: 'Architect',
+        title: 'Distributed Cloud Architecture',
+        desc: 'Cloud-native backends, microservices, and real-time pipelines engineered for resilience and zero-downtime scaling.',
+        stat: '99.98%',
+        statLabel: 'Target Uptime',
+      },
+      {
+        num: '02',
+        tag: 'Develop',
+        title: 'High-Performance Web & Mobile',
+        desc: 'Sub-second web platforms and buttery 60fps native apps crafted with meticulous design systems and accessibility.',
+        stat: '< 0.8s',
+        statLabel: 'Load Speed',
+      },
+      {
+        num: '03',
+        tag: 'Harden',
+        title: 'Security Audits & Hardening',
+        desc: 'Threat modeling, zero-trust infrastructure, and multi-tier load testing so launch day is predictable, never a gamble.',
+        stat: '100%',
+        statLabel: 'IP Handover',
+      },
+      {
+        num: '04',
+        tag: 'Scale',
+        title: 'AI Workflows & Continuous Growth',
+        desc: 'Practical LLM integrations, automated telemetry, and operational intelligence that compound efficiency over time.',
+        stat: '4x',
+        statLabel: 'Efficiency Boost',
+      },
+    ],
   },
   cta: {
     title: 'Have a system worth building right?',
@@ -180,6 +208,10 @@ const en = {
     companyPlaceholder: 'Company name (optional)',
     serviceOfInterest: 'Service of interest',
     selectService: 'Select a service',
+    quickSelectService: 'What are you looking to engineer?',
+    budgetLabel: 'Estimated investment',
+    selectBudget: 'Select budget range',
+    orChatWhatsApp: 'Chat directly on WhatsApp',
     projectDetails: 'Project details',
     detailsPlaceholder:
       'What are you building, what problem does it solve, and what does success look like?',
@@ -190,7 +222,9 @@ const en = {
       'Thanks for reaching out. We’ll review your project and reply within one business day.',
     sendAnother: 'Send another message',
     errRequired: 'Please fill in your name, email, and project details.',
+    errName: 'Please enter your name.',
     errEmail: 'That email address doesn’t look right.',
+    errMessage: 'Please tell us a little about your project.',
     errSubmit: 'Something went wrong sending your message. Please try again.',
     errUnavailable: 'The form is temporarily unavailable. Please email us directly at {email}.',
     directContact: 'Direct contact',
@@ -207,7 +241,16 @@ const en = {
   },
 };
 
-const ar: typeof en = {
+export const ar: typeof en = {
+  meta: {
+    title: 'آرتي كود | استوديو البرمجيات والتقنية والذكاء الاصطناعي',
+    description:
+      'استوديو برمجيات وتقنية يهندس الأنظمة والمنتجات والذكاء الاصطناعي للشركات التي تبني للمدى الطويل.',
+  },
+  a11y: {
+    skipToContent: 'الانتقال إلى المحتوى الرئيسي',
+    closeMenu: 'إغلاق القائمة',
+  },
   nav: {
     home: 'الرئيسية',
     expertise: 'خبراتنا',
@@ -219,17 +262,28 @@ const ar: typeof en = {
     switchLang: 'English',
   },
   hero: {
-    badge: 'نستقبل الآن مشاريع الربع الثالث من 2026',
-    line1: 'نهندس',
-    line2: 'برمجيات وذكاءً اصطناعياً',
-    line3: 'يتضاعف أثرها.',
+    badge: 'نستقبل الآن مشاريع جديدة',
+    line1: 'نحوّل فكرتك إلى',
+    line2: 'منتج رقمي',
+    line3: 'ينمو مع أعمالك.',
     description:
-      'آرتي كود استوديو تقني يبني أنظمة برمجية وتطبيقات جوال وحلول ذكاء اصطناعي وأمن سيبراني للشركات التي تأخذ بيئة الإنتاج على محمل الجد.',
-    exploreExpertise: 'استكشف خبراتنا',
+      'فريق خبير واحد يصمّم ويبني ويطلق منتجك على الويب والجوال والذكاء الاصطناعي، بهندسة متينة تواكب نمو أعمالك.',
+    exploreExpertise: 'شاهد أعمالنا',
+    trustBadge: 'موثوق به من شركات رائدة في بريطانيا، الخليج، وتركيا',
+    liveBadge: 'يعمل في بيئة الإنتاج',
+    verifiedDelivery: 'تسليم كامل الشيفرة والملكية الفكرية من اليوم الأول',
+  },
+  whatsapp: {
+    chatOnWhatsApp: 'تحدث معنا عبر واتساب',
+    activeNow: 'متواجدون الآن · رد فوري خلال دقائق',
+    quickMessage: 'مرحباً آرتي كود! أود مناقشة مشروع جديد معكم.',
   },
   home: {
     servicesEyebrow: 'ماذا نفعل',
     servicesTitle: 'تسعة تخصصات، فريق واحد مسؤول.',
+    servicesSubtitle:
+      'من الفكرة إلى الإطلاق، خبرات مترابطة تبني منتجك. اكتشف ما يمكننا إنجازه معاً.',
+    completingEcosystem: 'وتكتمل المنظومة مع',
     allExpertise: 'كل الخبرات',
     projectsEyebrow: 'أعمال مختارة',
     projectsTitle: 'مشاريع أثبتت أرقامها بجدارة.',
@@ -264,6 +318,56 @@ const ar: typeof en = {
     strengthsCtaDescription:
       'أرسل لنا موجز المشروع، ونعود إليك خلال يوم عمل واحد برأي صريح — بما في ذلك إن كنا الخيار غير المناسب لك.',
     strengthsCtaAction: 'تحدث إلى مهندس',
+  },
+  ecosystem: {
+    caption: 'خبرات متصلة. إمكانات بلا حدود.',
+    hubAlt: 'مركز أرتيكود التقني',
+    hubLabel: 'نواة واحدة. خبرات متكاملة.',
+    hint: 'اختر تخصصاً لاستكشاف التفاصيل',
+    playAnimation: 'تشغيل الحركة',
+    pauseAnimation: 'إيقاف الحركة',
+  },
+  cycle: {
+    eyebrow: 'محرك العمل الهندسي',
+    title: 'منظومة دائرية متماسكة مبنية لبيئة الإنتاج',
+    description:
+      'استكشف التخصصات الأربعة المتكاملة التي تدير كل منصة في آرتي كود، من المعمارية الأولى إلى التوسع المستدام.',
+    centerBadge: 'نواة آرتي كود',
+    autoCycle: 'دوران مستمر',
+    steps: [
+      {
+        num: '01',
+        tag: 'معمارية',
+        title: 'المعمارية السحابية والأنظمة الموزعة',
+        desc: 'خدمات مصغرة وخطوط بيانات لحظية وبنى سحابية مهندسة للصمود والتوسع دون أي توقف في الخدمة.',
+        stat: '99.98%',
+        statLabel: 'معدل التوافر المستهدف',
+      },
+      {
+        num: '02',
+        tag: 'تطوير',
+        title: 'تطوير الويب والجوال فائق السرعة',
+        desc: 'منصات ويب بتحميل تحت الثانية وتطبيقات جوال سريعة 60fps بأنظمة تصميم واجهات متقنة ودقيقة.',
+        stat: '< 0.8s',
+        statLabel: 'سرعة التحميل',
+      },
+      {
+        num: '03',
+        tag: 'تحصين',
+        title: 'تدقيق الأمان والتحصين الشامل',
+        desc: 'نمذجة التهديدات وبنية انعدام الثقة واختبارات الحمل المتعددة لتكون ليلة الإطلاق مضمونة وواثقة.',
+        stat: '100%',
+        statLabel: 'تسليم كامل للملكية الفكرية',
+      },
+      {
+        num: '04',
+        tag: 'توسع',
+        title: 'وكلاء الذكاء الاصطناعي والتوسع',
+        desc: 'تكاملات نماذج لغوية عملية وأتمتة مسارات العمل ولوحات مراقبة تضاعف الكفاءة التشغيلية باستمرار.',
+        stat: '4x',
+        statLabel: 'مضاعفة الكفاءة',
+      },
+    ],
   },
   cta: {
     title: 'لديك نظام يستحق أن يُبنى بإتقان؟',
@@ -342,6 +446,10 @@ const ar: typeof en = {
     companyPlaceholder: 'اسم الشركة (اختياري)',
     serviceOfInterest: 'الخدمة المطلوبة',
     selectService: 'اختر خدمة',
+    quickSelectService: 'ما الذي تتطلع لبنائه وهندسته؟',
+    budgetLabel: 'الميزانية التقديرية للاستثمار',
+    selectBudget: 'اختر نطاق الميزانية',
+    orChatWhatsApp: 'تواصل مباشرة عبر واتساب',
     projectDetails: 'تفاصيل المشروع',
     detailsPlaceholder: 'ما الذي تبنيه، وما المشكلة التي يحلها، وكيف يبدو النجاح بالنسبة لك؟',
     sending: 'جارٍ الإرسال…',
@@ -350,7 +458,9 @@ const ar: typeof en = {
     successBody: 'شكراً لتواصلك. سنراجع مشروعك ونرد عليك خلال يوم عمل واحد.',
     sendAnother: 'إرسال رسالة أخرى',
     errRequired: 'يرجى تعبئة الاسم والبريد الإلكتروني وتفاصيل المشروع.',
+    errName: 'يرجى إدخال اسمك.',
     errEmail: 'عنوان البريد الإلكتروني لا يبدو صحيحاً.',
+    errMessage: 'أخبرنا قليلاً عن مشروعك.',
     errSubmit: 'حدث خطأ أثناء إرسال رسالتك. يرجى المحاولة مرة أخرى.',
     errUnavailable: 'النموذج غير متاح مؤقتاً. يرجى مراسلتنا مباشرة على {email}',
     directContact: 'تواصل مباشر',
@@ -367,4 +477,4 @@ const ar: typeof en = {
   },
 };
 
-export const ui: Record<Lang, typeof en> = { en, ar };
+export const ui = { en, ar };

@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Kufi+Arabic:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -13,6 +12,14 @@
   @media (prefers-reduced-motion: reduce) {
     html {
       scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
     }
   }
 
@@ -229,15 +236,33 @@
   }
 
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-full bg-accent-600 px-7 py-3.5 text-sm font-semibold text-white shadow-sm transition-all duration-300 hover:bg-accent-500 hover:shadow-[0_12px_28px_-12px_rgba(41,57,199,0.6)] active:scale-95;
+    @apply relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-full bg-gradient-to-r from-accent-700 via-accent-600 to-accent-500 px-7 py-3.5 text-sm font-semibold text-white shadow-[0_10px_26px_-8px_rgba(41,57,199,0.5)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_36px_-10px_rgba(41,57,199,0.7)] hover:brightness-105 active:scale-95;
+  }
+  .btn-primary::after {
+    content: '';
+    position: absolute;
+    inset-x: 0;
+    top: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
   }
 
   .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 rounded-full border border-ink-200 bg-white px-7 py-3.5 text-sm font-semibold text-ink-900 shadow-sm transition-all duration-300 hover:border-accent-300 hover:bg-accent-50 active:scale-95;
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-ink-200 bg-white/95 px-7 py-3.5 text-sm font-semibold text-ink-900 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-accent-300 hover:bg-accent-50/70 hover:text-accent-800 active:scale-95;
   }
 
   .card-surface {
-    @apply rounded-[28px] border border-ink-100 bg-white/90 shadow-[0_18px_48px_rgba(15,23,42,0.07)] backdrop-blur-sm;
+    @apply rounded-[28px] border border-ink-100/90 bg-white/95 shadow-[0_18px_48px_rgba(15,23,42,0.06)] backdrop-blur-md transition-all duration-300;
+  }
+
+  .chip-option {
+    @apply inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs font-semibold transition-all duration-200 cursor-pointer select-none;
+  }
+  .chip-option-inactive {
+    @apply border-ink-200 bg-white text-ink-600 hover:border-accent-300 hover:bg-accent-50/50 hover:text-ink-900;
+  }
+  .chip-option-active {
+    @apply border-accent-600 bg-accent-600 text-white shadow-md shadow-accent-600/25;
   }
 
   .text-gradient {

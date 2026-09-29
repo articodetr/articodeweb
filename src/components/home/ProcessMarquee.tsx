@@ -243,7 +243,9 @@ function JourneyPinned({
     setActive((prev) => (prev === next ? prev : next));
   });
 
-  const runway = `${Math.max(220, steps.length * 65)}vh`;
+  // Long enough to make each station legible without turning the journey into
+  // several screens of forced horizontal scrolling.
+  const runway = `${Math.max(190, steps.length * 44)}vh`;
 
   return (
     <div ref={outerRef} style={{ height: runway }} className="relative">

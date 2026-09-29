@@ -23,7 +23,7 @@ function Illustration({ name, alt, hub = false }: { name: string; alt: string; h
 export function ServiceEcosystem({ services, selectedId, onSelect }: {
   services: Service[]; selectedId: string; onSelect: (id: string) => void;
 }) {
-  const { lang } = useLang();
+  const { lang, t } = useLang();
   const root = useRef<HTMLDivElement>(null);
   const [hovered, setHovered] = useState<string | null>(null);
   const [focused, setFocused] = useState<string | null>(null);
@@ -117,9 +117,9 @@ export function ServiceEcosystem({ services, selectedId, onSelect }: {
   return (
     <div ref={root} className="ecosystem" data-active={active ?? undefined}>
       <div className="ecosystem-toolbar">
-        <span className="ecosystem-caption"><span aria-hidden="true" />{lang === 'ar' ? 'خبرات متصلة. إمكانات بلا حدود.' : 'Connected expertise. Limitless possibilities.'}</span>
+        <span className="ecosystem-caption"><span aria-hidden="true" />{t.ecosystem.caption}</span>
         <button type="button" className="ecosystem-motion" onClick={toggleMotion} aria-pressed={paused}
-          aria-label={lang === 'ar' ? (paused ? 'تشغيل الحركة' : 'إيقاف الحركة') : (paused ? 'Play animation' : 'Pause animation')}>
+          aria-label={paused ? t.ecosystem.playAnimation : t.ecosystem.pauseAnimation}>
           {paused ? <Play size={14} aria-hidden="true" /> : <Pause size={14} aria-hidden="true" />}
         </button>
       </div>
@@ -145,9 +145,9 @@ export function ServiceEcosystem({ services, selectedId, onSelect }: {
         ))}
         <div className="ecosystem-hub">
           <div className="ecosystem-hub__entrance"><div className="ecosystem-hub__float">
-            <Illustration name="center-hub" alt={lang === 'ar' ? 'مركز أرتيكود التقني' : 'ArtiCode technology hub'} hub />
+            <Illustration name="center-hub" alt={t.ecosystem.hubAlt} hub />
           </div>
-            <span className="ecosystem-hub__label" dir={lang === 'ar' ? 'rtl' : 'ltr'}>{lang === 'ar' ? 'نواة واحدة. خبرات متكاملة.' : 'One core. Working as one.'}</span>
+            <span className="ecosystem-hub__label" dir={lang === 'ar' ? 'rtl' : 'ltr'}>{t.ecosystem.hubLabel}</span>
           </div>
         </div>
         {ecosystemServices.map((node) => {
@@ -165,7 +165,7 @@ export function ServiceEcosystem({ services, selectedId, onSelect }: {
                   onFocus={(event) => { if (event.currentTarget.matches(':focus-visible')) setFocused(node.id); }}
                   onBlur={() => setFocused(null)}>
                   <span className="ecosystem-node__art">
-                    {node.image ? <Illustration name={node.image} alt="" /> : (
+                    {node.image ? <Illustration name={node.image} alt={service.title} /> : (
                       <span className="ecosystem-web" aria-hidden="true">
                         <span className="ecosystem-web__window"><span className="ecosystem-web__chrome"><i /><i /><i /></span>
                           <Globe2 className="ecosystem-web__globe" strokeWidth={1} /><Code2 className="ecosystem-web__code" />
@@ -181,7 +181,7 @@ export function ServiceEcosystem({ services, selectedId, onSelect }: {
           );
         })}
       </div>
-      <p className="ecosystem-hint">{lang === 'ar' ? 'اختر تخصصاً لاستكشاف التفاصيل' : 'Select a discipline to explore the details'}</p>
+      <p className="ecosystem-hint">{t.ecosystem.hint}</p>
     </div>
   );
 }

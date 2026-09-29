@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowUpLeft, ArrowUpRight } from 'lucide-react';
 import { SectionHeading } from '@/components/SectionHeading';
 import { getServices } from '@/data/content';
@@ -21,23 +22,38 @@ export function ServicesGrid() {
         <div className="service-section__heading">
           <SectionHeading eyebrow={t.home.servicesEyebrow} title={t.home.servicesTitle} />
           <p className="mt-6 max-w-sm text-sm leading-7 text-ink-400">
-            {lang === 'ar'
-              ? 'من الفكرة إلى الإطلاق، خبرات مترابطة تبني منتجك. اكتشف ما يمكننا إنجازه معاً.'
-              : 'From idea to launch, connected expertise to build your product. Explore what we can create together.'}
+            {t.home.servicesSubtitle}
           </p>
         </div>
         <ServiceEcosystem services={services} selectedId={selectedId} onSelect={setSelectedId} />
         <div className="service-section__details">
           <div id="ecosystem-service-details" className="service-detail" aria-live="polite" aria-atomic="true">
-            <p className="text-xs font-semibold text-accent-600">{selected.tagline}</p>
-            <h3 className="mt-3 font-display text-xl font-bold text-ink-950">{selected.title}</h3>
-            <p className="mt-3 text-sm leading-7 text-ink-600">{selected.description}</p>
-            <ul className="mt-4 flex flex-wrap gap-2">
-              {selected.features.map((feature) => <li className="service-detail__feature" key={feature}>{feature}</li>)}
-            </ul>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={selected.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.25, ease: 'easeOut' }}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-xs font-semibold text-accent-600">{selected.tagline}</p>
+                  <span className="h-2 w-2 rounded-full bg-accent-500 animate-pulse" />
+                </div>
+                <h3 className="mt-2 font-display text-xl font-bold text-ink-950 sm:text-2xl">{selected.title}</h3>
+                <p className="mt-3 text-sm leading-7 text-ink-600">{selected.description}</p>
+                <ul className="mt-4 flex flex-wrap gap-2">
+                  {selected.features.map((feature) => (
+                    <li className="service-detail__feature" key={feature}>
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
+              </motion.div>
+            </AnimatePresence>
           </div>
           <p className="mb-3 mt-6 text-xs font-semibold text-ink-400">
-            {lang === 'ar' ? 'وتكتمل المنظومة مع' : 'Completing the ecosystem'}
+            {t.home.completingEcosystem}
           </p>
           <div className="flex flex-wrap gap-x-4 gap-y-3">
             {additional.map((service) => (

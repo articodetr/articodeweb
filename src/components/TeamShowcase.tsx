@@ -1,4 +1,5 @@
 import type { PointerEvent as ReactPointerEvent } from 'react';
+import { MessageCircle } from 'lucide-react';
 import { Reveal } from '@/components/motion';
 import type { TeamMember } from '@/data/content';
 import { getWhatsAppUrl } from '@/data/contact';
@@ -53,7 +54,7 @@ export function TeamShowcase({ members }: TeamShowcaseProps) {
               {member.image ? (
                 <img
                   src={member.image}
-                  alt=""
+                  alt={member.name}
                   width={1000}
                   height={1000}
                   loading="lazy"
@@ -62,26 +63,35 @@ export function TeamShowcase({ members }: TeamShowcaseProps) {
                   className="team-card-image h-full w-full object-cover object-center"
                 />
               ) : (
-                <div className="team-card-image relative flex h-full w-full items-center justify-center overflow-hidden bg-gradient-to-br from-accent-700 via-accent-500 to-cyan-500">
-                  <div className="absolute -end-16 -top-16 h-56 w-56 rounded-full border border-white/20" />
-                  <div className="absolute -bottom-20 -start-12 h-64 w-64 rounded-full border border-white/15" />
-                  <span className="relative font-display text-6xl font-semibold text-white/95">
-                    {member.initials}
-                  </span>
+                <div className="team-card-image relative flex h-full w-full flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-ink-900 via-accent-950 to-ink-950">
+                  <div className="pointer-events-none absolute -end-16 -top-16 h-56 w-56 rounded-full bg-accent-500/20 blur-2xl" />
+                  <div className="pointer-events-none absolute -bottom-20 -start-12 h-64 w-64 rounded-full bg-cyan-500/20 blur-2xl" />
+                  <div className="relative flex h-24 w-24 items-center justify-center rounded-3xl border border-white/20 bg-white/10 shadow-2xl backdrop-blur-xl">
+                    <span className="font-display text-4xl font-bold tracking-tight text-white/95">
+                      {member.initials}
+                    </span>
+                  </div>
                 </div>
               )}
 
-              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink-950 via-ink-950/10 to-transparent" />
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink-950 via-ink-950/20 to-transparent" />
               <div className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-white/10" />
             </div>
 
             <div className="team-card-spotlight pointer-events-none absolute inset-0 z-10" aria-hidden="true" />
 
             <div className="relative z-20 flex h-full items-end p-4 sm:p-5">
-              <div className="team-card-caption w-full rounded-xl border border-white/15 bg-ink-950/55 p-4 text-white shadow-xl backdrop-blur-md">
-                <div className="team-card-accent mb-3 h-px w-9 bg-gradient-to-r from-accent-300 to-cyan-300 rtl:bg-gradient-to-l" />
-                <h3 className="font-display text-base font-semibold text-white">{member.name}</h3>
-                <p className="mt-1 text-sm text-white/70">{member.role}</p>
+              <div className="team-card-caption w-full rounded-2xl border border-white/15 bg-ink-950/70 p-4 text-white shadow-2xl backdrop-blur-xl transition-colors duration-300 group-hover:border-accent-400/40 group-hover:bg-ink-950/85">
+                <div className="team-card-accent mb-3 h-px w-9 bg-gradient-to-r from-accent-400 to-cyan-400 rtl:bg-gradient-to-l" />
+                <div className="flex items-center justify-between gap-2">
+                  <div>
+                    <h3 className="font-display text-base font-semibold text-white">{member.name}</h3>
+                    <p className="mt-0.5 text-xs text-white/70">{member.role}</p>
+                  </div>
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/10 text-white/80 transition-all duration-300 group-hover:bg-emerald-500 group-hover:text-white group-hover:scale-110">
+                    <MessageCircle className="h-4 w-4" />
+                  </span>
+                </div>
               </div>
             </div>
           </a>
