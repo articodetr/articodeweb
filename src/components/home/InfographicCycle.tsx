@@ -1,10 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
-import { Compass, Code2, ShieldCheck, Sparkles, Play, Pause } from 'lucide-react';
+import { Play, Pause } from 'lucide-react';
 import { SectionHeading } from '@/components/SectionHeading';
 import { useLang } from '@/i18n';
 
-const STEP_ICONS = [Compass, Code2, ShieldCheck, Sparkles];
+const LABEL_LAYOUTS = [
+  { idx: 0, numX: 250, numY: 94, tagX: 250, tagY: 130 },
+  { idx: 1, numX: 390, numY: 270, tagX: 390, tagY: 230 },
+  { idx: 2, numX: 250, numY: 408, tagX: 250, tagY: 371 },
+  { idx: 3, numX: 110, numY: 230, tagX: 110, tagY: 270 },
+] as const;
 
 /*
   SVG Canvas: 500 × 500
@@ -59,10 +64,10 @@ const STEP_ICONS = [Compass, Code2, ShieldCheck, Sparkles];
 */
 
 const SEGS = [
-  { idx: 0, gradId: 'g0', start: '#e05535', stop: '#f4834b', accent: '#ff9966', label: 'TOP' },
-  { idx: 1, gradId: 'g1', start: '#3b5768', stop: '#5a7d92', accent: '#7daabb', label: 'RIGHT' },
-  { idx: 2, gradId: 'g2', start: '#c03848', stop: '#e8526a', accent: '#f47a90', label: 'BOTTOM' },
-  { idx: 3, gradId: 'g3', start: '#2a3d47', stop: '#415e6e', accent: '#6490a2', label: 'LEFT' },
+  { idx: 0, gradId: 'g0', start: '#2432a2', stop: '#354be8', accent: '#586dff', label: 'TOP' },
+  { idx: 1, gradId: 'g1', start: '#2939c7', stop: '#586dff', accent: '#91a2ff', label: 'RIGHT' },
+  { idx: 2, gradId: 'g2', start: '#0b6d87', stop: '#08a9c8', accent: '#16c2da', label: 'BOTTOM' },
+  { idx: 3, gradId: 'g3', start: '#232e83', stop: '#0787a6', accent: '#58dbe9', label: 'LEFT' },
 ];
 
 // Band path for TOP (rotation=0). All others derive from rotate(N*90 250 250)
@@ -83,7 +88,6 @@ export function InfographicCycle() {
   const reduced = !!useReducedMotion();
 
   const steps = t.cycle.steps;
-  const CurrentIcon = STEP_ICONS[active] ?? Compass;
 
   useEffect(() => {
     if (!isPlaying || reduced) return;
@@ -104,7 +108,7 @@ export function InfographicCycle() {
         className="pointer-events-none absolute inset-0 -z-10"
         style={{
           background:
-            'radial-gradient(ellipse 70% 55% at 50% 50%, rgba(224,85,53,0.04) 0%, transparent 70%)',
+            'radial-gradient(ellipse 70% 55% at 50% 50%, rgba(53,75,232,0.07) 0%, rgba(22,194,218,0.035) 42%, transparent 70%)',
         }}
         aria-hidden="true"
       />
@@ -155,6 +159,11 @@ export function InfographicCycle() {
                   {/* Center card shadow */}
                   <filter id="center-shadow" x="-5%" y="-5%" width="110%" height="110%">
                     <feDropShadow dx="0" dy="2" stdDeviation="5" floodColor="rgba(0,0,0,0.08)" />
+                  </filter>
+
+                  {/* Keeps white labels legible across every brand gradient. */}
+                  <filter id="label-shadow" x="-20%" y="-20%" width="140%" height="140%">
+                    <feDropShadow dx="0" dy="1.5" stdDeviation="1.2" floodColor="#08090b" floodOpacity="0.3" />
                   </filter>
 
                   {/* Clip paths for interlocking weave */}
@@ -221,24 +230,9 @@ export function InfographicCycle() {
                   </g>
                 </g>
 
-                {/* ── LAYER 3: Step labels – placed at absolute pre-computed positions ── */}
-                {/*
-                  Band visual centers for each direction (500×500 canvas):
-                  TOP    (idx=0): num≈(195, 98),  tag≈(195,126), icon≈(313,110)
-                  RIGHT  (idx=1): num≈(403, 195),  tag≈(375,195), icon≈(390,313)
-                  BOTTOM (idx=2): num≈(306, 403),  tag≈(306,375), icon≈(188,390)
-                  LEFT   (idx=3): num≈(98, 306),   tag≈(126,306), icon≈(110,188)
-                */}
-                {([
-                  // [idx, numX, numY, tagX, tagY, icX, icY]
-                  [0, 195, 98,  195, 126, 313, 110],
-                  [1, 403, 195, 375, 195, 390, 313],
-                  [2, 306, 403, 306, 375, 188, 390],
-                  [3, 98,  306, 126, 306, 110, 188],
-                ] as Array<[number,number,number,number,number,number,number]>).map(
-                  ([idx, numX, numY, tagX, tagY, icX, icY]) => {
-                    const Icon = STEP_ICONS[idx] ?? Compass;
-                    const isActive = active === idx;
+                {/* ── LAYER 3: Step labels – balanced independently inside each band ── */}
+                {LABEL_LAYOUTS.map(
+                  ({ idx, numX, numY, tagX, tagY }) => {
                     const step = steps[idx];
                     if (!step) return null;
                     return (
@@ -248,50 +242,38 @@ export function InfographicCycle() {
                           x={numX}
                           y={numY}
                           fill="#ffffff"
-                          fontSize="28"
-                          fontWeight="900"
-                          fontFamily="system-ui, -apple-system, sans-serif"
+                          fontSize="25"
+                          fontWeight="800"
+                          fontFamily="'Space Grotesk', 'Inter', system-ui, sans-serif"
                           textAnchor="middle"
                           dominantBaseline="middle"
+                          filter="url(#label-shadow)"
                         >
                           {step.num}
                         </text>
-                        {/* Tag */}
+                        {/* Tag pill */}
+                        <rect
+                          x={tagX - 35}
+                          y={tagY - 12}
+                          width="70"
+                          height="24"
+                          rx="12"
+                          fill="rgba(8,9,11,0.16)"
+                          stroke="rgba(255,255,255,0.24)"
+                          strokeWidth="1"
+                        />
                         <text
                           x={tagX}
-                          y={tagY}
-                          fill="rgba(255,255,255,0.78)"
-                          fontSize="9"
+                          y={tagY + 0.5}
+                          fill="#ffffff"
+                          fontSize="10.5"
                           fontWeight="700"
-                          fontFamily="system-ui, -apple-system, sans-serif"
+                          fontFamily="'Noto Kufi Arabic', 'Inter', system-ui, sans-serif"
                           textAnchor="middle"
                           dominantBaseline="middle"
-                          letterSpacing="1.5"
                         >
                           {step.tag.toUpperCase()}
                         </text>
-                        {/* Icon circle */}
-                        <circle
-                          cx={icX}
-                          cy={icY}
-                          r="24"
-                          fill="rgba(0,0,0,0.22)"
-                          stroke={isActive ? 'rgba(255,255,255,0.75)' : 'rgba(255,255,255,0.28)'}
-                          strokeWidth={isActive ? 2 : 1}
-                        />
-                        <foreignObject x={icX - 14} y={icY - 14} width="28" height="28" pointerEvents="none">
-                          <div
-                            style={{
-                              width: '100%',
-                              height: '100%',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                            }}
-                          >
-                            <Icon style={{ width: 15, height: 15, color: 'white', strokeWidth: 2.5 }} />
-                          </div>
-                        </foreignObject>
                       </g>
                     );
                   }
@@ -327,26 +309,16 @@ export function InfographicCycle() {
                         transition={{ duration: 0.22 }}
                         style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}
                       >
-                        <div
-                          style={{
-                            width: 36,
-                            height: 36,
-                            borderRadius: 10,
-                            background: `linear-gradient(135deg, ${SEGS[active].start}, ${SEGS[active].stop})`,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: 'white',
-                          }}
-                        >
-                          <CurrentIcon style={{ width: 18, height: 18 }} />
-                        </div>
                         <span
                           style={{
-                            fontFamily: 'monospace',
-                            fontSize: 11,
-                            fontWeight: 900,
-                            letterSpacing: '0.12em',
+                            minWidth: 42,
+                            borderRadius: 999,
+                            border: `1px solid ${SEGS[active].accent}`,
+                            background: `${SEGS[active].accent}18`,
+                            padding: '4px 10px',
+                            fontFamily: "'Space Grotesk', 'Inter', system-ui, sans-serif",
+                            fontSize: 12,
+                            fontWeight: 800,
                             color: SEGS[active].start,
                           }}
                         >
@@ -354,11 +326,12 @@ export function InfographicCycle() {
                         </span>
                         <p
                           style={{
-                            fontSize: 9.5,
+                            fontFamily: lang === 'ar' ? "'Noto Kufi Arabic', 'Inter', system-ui, sans-serif" : "'Inter', system-ui, sans-serif",
+                            fontSize: 10.5,
                             fontWeight: 700,
-                            color: '#374151',
-                            lineHeight: 1.35,
-                            maxWidth: 120,
+                            color: '#14181d',
+                            lineHeight: 1.55,
+                            maxWidth: 132,
                             overflow: 'hidden',
                             display: '-webkit-box',
                             WebkitLineClamp: 2,
@@ -369,8 +342,9 @@ export function InfographicCycle() {
                         </p>
                         <span
                           style={{
-                            fontWeight: 900,
-                            fontSize: 14,
+                            fontFamily: "'Space Grotesk', 'Inter', system-ui, sans-serif",
+                            fontWeight: 800,
+                            fontSize: 15,
                             color: SEGS[active].start,
                           }}
                         >
@@ -388,7 +362,7 @@ export function InfographicCycle() {
               <button
                 type="button"
                 onClick={() => setIsPlaying((p) => !p)}
-                className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white/80 px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm backdrop-blur-sm transition hover:border-orange-400 hover:text-orange-700"
+                className="inline-flex items-center gap-1.5 rounded-full border border-accent-100 bg-white/80 px-3 py-1.5 text-xs font-semibold text-ink-600 shadow-sm backdrop-blur-sm transition hover:border-accent-300 hover:text-accent-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-300 focus-visible:ring-offset-2"
                 aria-pressed={isPlaying}
               >
                 {isPlaying ? (
@@ -421,7 +395,6 @@ export function InfographicCycle() {
           <div className="space-y-3 lg:col-span-6">
             {steps.map((step, idx) => {
               const isCurrent = active === idx;
-              const Icon = STEP_ICONS[idx] ?? Compass;
               const seg = SEGS[idx];
 
               return (
@@ -430,8 +403,8 @@ export function InfographicCycle() {
                   onClick={() => setActive(idx)}
                   className={`group relative cursor-pointer overflow-hidden rounded-2xl border p-5 transition-all duration-300 ${
                     isCurrent
-                      ? 'border-slate-300/60 bg-white shadow-lg -translate-y-px'
-                      : 'border-slate-100 bg-white/60 hover:bg-white/90 hover:border-slate-200'
+                      ? 'border-accent-200/80 bg-white shadow-[0_16px_38px_rgba(41,57,199,0.12)] -translate-y-px'
+                      : 'border-ink-50 bg-white/60 hover:bg-white/90 hover:border-accent-100'
                   }`}
                 >
                   {/* Active color bar */}
@@ -444,40 +417,32 @@ export function InfographicCycle() {
                   )}
 
                   <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      <div
-                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-white shadow-sm transition-transform duration-300 group-hover:scale-105"
-                        style={{ background: `linear-gradient(135deg, ${seg.start}, ${seg.stop})` }}
-                      >
-                        <Icon className="h-5 w-5" />
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span
+                          dir="ltr"
+                          className="font-mono text-xs font-black tracking-widest"
+                          style={{ color: seg.start }}
+                        >
+                          {step.num}
+                        </span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-ink-400">
+                          {step.tag}
+                        </span>
                       </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span
-                            dir="ltr"
-                            className="font-mono text-xs font-black tracking-widest"
-                            style={{ color: seg.start }}
-                          >
-                            {step.num}
-                          </span>
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                            {step.tag}
-                          </span>
-                        </div>
-                        <h4 className="font-display text-sm font-bold text-slate-900 sm:text-base">
-                          {step.title}
-                        </h4>
-                      </div>
+                      <h4 className="font-display text-sm font-bold text-ink-950 sm:text-base">
+                        {step.title}
+                      </h4>
                     </div>
                     <span
                       dir="ltr"
-                      className="shrink-0 font-display text-base font-black text-slate-800"
+                      className="shrink-0 font-display text-base font-black text-ink-800"
                     >
                       {step.stat}
                     </span>
                   </div>
 
-                  <p className="mt-2 text-xs leading-relaxed text-slate-500 sm:text-sm">
+                  <p className="mt-2 text-xs leading-relaxed text-ink-500 sm:text-sm">
                     {step.desc}
                   </p>
                 </div>
